@@ -1,3 +1,9 @@
+---
+layout: default
+title: noSugarK Blog
+description: this is noSugarK's blog
+---
+
 <div align="center">
 
 <h1>
