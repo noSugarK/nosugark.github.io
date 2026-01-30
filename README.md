@@ -1,3 +1,9 @@
+---
+layout: default
+title: noSugarK个人博客
+description: 这里包含了简介和一些个人项目
+---
+
 <div align="center">
 
 <h1>
