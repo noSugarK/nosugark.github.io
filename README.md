@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1>
-noSugarK 个人主页
+noSugarK 个人博客
 </h1>
 
 <h4>
@@ -11,9 +11,13 @@ noSugarK 个人主页
 <img src="https://img.shields.io/github/license/noSugarK/nosugark.github.io?style=social" alt="License" >
 </h4>
 
-<a href="/README_en.html">英文</a> | 中文
+<a href="/README_en.html">English</a> | 中文
 
 </div>
+
+## 个人简历
+
+[个人简历](简历.md)
 
 ## 个人仓库
 
