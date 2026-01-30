@@ -11,7 +11,7 @@ noSugarK Blog
 <img src="https://img.shields.io/github/license/noSugarK/nosugark.github.io?style=social" alt="License" >
 </h4>
 
-English | <a href="/README.html">中文</a>
+English | <a href="/">中文</a>
 
 </div>
 
