@@ -29,11 +29,13 @@
 [hbszDataVisual](https://github.com/noSugarK/hbszDataVisual) - 基于Django5的数据分析可视化网站
 
 > 技术栈：Django5、bootstrap5、echarts5、jQuery3
+> 
 > 描述：基于Django5的数据分析可视化网站
 
 [algoscent](https://github.com/noSugarK/algoscent) - 基于大语言模型的个性化调香网站
 
 > 技术栈：Django5、Vue3、ElementPlus、MySQL8
+> 
 > 描述：前后端分离开发，通过用户填写问卷后调用Qwen模型对用户进行个性化分析
 
 ## 桌面应用开发
@@ -41,4 +43,5 @@
 [tools_for_3d_detection](https://github.com/noSugarK/tools_for_3d_detection) - 3D标注自动化质检工具
 
 > 开发环境：Python3.13、PySide6、Ultralytics、OpenCV、Qwen3-VL API
+> 
 > 描述：本项目是一个基于PySide6图形用户界面的3D检测标注自动化质检工具，集成了YOLO目标检测模型、3D到2D投影技术以及Qwen3-VL视觉语言模型，用于自动化检测和校验人工标注的3D目标检测数据质量。
