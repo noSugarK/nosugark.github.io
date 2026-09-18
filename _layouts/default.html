@@ -59,8 +59,49 @@ try{
 </main>
 
 <footer><div class="wrap">
-  <span>© {{ 'now' | date: "%Y" }} noSugarK · {{ site.url | remove: "https://" }}</span>
-  <span>nosugark@qq.com · GitHub @noSugarK</span>
+  <span>© {{ 'now' | date: "%Y" }} noSugarK</span>
+
+  {%- comment -%}
+    GitHub / 邮箱是真链接。QQ 与微信没有桌面端能用的跳转协议，改成悬停出二维码：
+    页面里只存一条链接（data-qr），码在浏览器现编码现画。
+    编码器是本地化的 MIT 库，挂到 ul 上让两个图标共用，首次悬停才注入 <script>。
+    手机上扫自己屏幕没意义，所以面板里同时给一条能直接点开的链接。
+  {%- endcomment -%}
+  <ul class="contacts" data-lib="{{ '/assets/js/vendor/qrcode.min.js' | relative_url }}">
+    <li><a class="ico" href="https://github.com/noSugarK" target="_blank" rel="noopener"
+           aria-label="GitHub" title="GitHub @noSugarK">
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+    </a></li>
+
+    <li><a class="ico" href="mailto:nosugark@qq.com" aria-label="邮箱" title="nosugark@qq.com">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <rect x="2.5" y="5" width="19" height="14"/><path d="M2.5 6.2 12 13l9.5-6.8"/></svg>
+    </a></li>
+
+    <li class="qr-host">
+      <button class="ico" type="button" aria-label="QQ" title="QQ"
+              data-qr="https://qm.qq.com/q/8bsWIppWve">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.395 15.035a40 40 0 0 0-.803-2.264l-1.079-2.695c.001-.032.014-.562.014-.836C19.526 4.632 17.351 0 12 0S4.474 4.632 4.474 9.241c0 .274.013.804.014.836l-1.08 2.695a39 39 0 0 0-.802 2.264c-1.021 3.283-.69 4.643-.438 4.673.54.065 2.103-2.472 2.103-2.472 0 1.469.756 3.387 2.394 4.771-.612.188-1.363.479-1.845.835-.434.32-.379.646-.301.778.343.578 5.883.369 7.482.189 1.6.18 7.14.389 7.483-.189.078-.132.132-.458-.301-.778-.483-.356-1.233-.646-1.846-.836 1.637-1.384 2.393-3.302 2.393-4.771 0 0 1.563 2.537 2.103 2.472.251-.03.581-1.39-.438-4.673"/></svg>
+      </button>
+      <div class="qr">
+        <div class="qr-box" role="img" aria-label="QQ 二维码"></div>
+        <a href="https://qm.qq.com/q/8bsWIppWve"
+           target="_blank" rel="noopener" data-en="Open in QQ">在 QQ 中打开</a>
+      </div>
+    </li>
+
+    <li class="qr-host">
+      <button class="ico" type="button" aria-label="微信" title="微信"
+              data-qr="https://u.wechat.com/MFM9t4Qh2h0z2791OY2urQE?s=3">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.9 3C4.7 3 1.4 5.9 1.4 9.5c0 2 1.1 3.8 2.8 5l-.8 2.5 2.9-1.5c.7.2 1.5.3 2.3.3h.4a5.5 5.5 0 0 1-.2-1.4c0-3.4 3.3-6.1 7.4-6.1h.5C16 5.1 12.8 3 8.9 3ZM6.3 6.4a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2Zm5.2 0a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2Z"/><path d="M16.6 9.6c-3.5 0-6.3 2.4-6.3 5.3 0 2.9 2.8 5.3 6.3 5.3.7 0 1.4-.1 2-.3l2.5 1.3-.7-2.2c1.4-1 2.2-2.4 2.2-4.1 0-2.9-2.6-5.3-6-5.3Zm-2.2 3.5a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8Zm4.4 0a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8Z"/></svg>
+      </button>
+      <div class="qr">
+        <div class="qr-box" role="img" aria-label="微信二维码"></div>
+        <a href="https://u.wechat.com/MFM9t4Qh2h0z2791OY2urQE?s=3"
+           target="_blank" rel="noopener" data-en="Open in WeChat">在微信中打开</a>
+      </div>
+    </li>
+  </ul>
 </div></footer>
 
 <script src="{{ '/assets/js/site.js' | relative_url }}"></script>
