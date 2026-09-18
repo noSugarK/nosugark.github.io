@@ -1,0 +1,9 @@
+# Jekyll 构建产物与缓存
+_site/
+.jekyll-cache/
+.jekyll-metadata
+
+# 本地 gem 环境
+Gemfile.lock
+vendor/
+.bundle/

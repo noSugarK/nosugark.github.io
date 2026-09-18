@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if page.url == "/" %}{{ site.title }} — 个人主页{% else %}{{ page.title }} · {{ site.title }}{% endif %}</title>
+<meta name="description" content="{{ page.description | default: site.description }}">
+<link rel="canonical" href="{{ page.url | absolute_url }}">
+<link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ '/feed.xml' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+<script>
+/* 在首帧之前定好主题，否则深色用户会先闪一下白屏。
+   localStorage 在隐私模式下会抛异常，所以整段包在 try 里。 */
+try{
+  document.documentElement.dataset.theme =
+    localStorage.getItem("theme") ||
+    (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+}catch(e){ document.documentElement.dataset.theme = "light"; }
+</script>
+</head>
+<body>
+
+<div id="bar"></div>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="{{ '/' | relative_url }}">noSugarK</a>
+    <nav>
+      <a href="{{ '/#projects' | relative_url }}" data-en="Projects">项目</a>
+      <a href="{{ '/#skills'   | relative_url }}" data-en="Skills">技能</a>
+      <a href="{{ '/#exp'      | relative_url }}" data-en="Experience">经历</a>
+      <a href="{{ '/#edu'      | relative_url }}" data-en="Education">教育</a>
+      <a href="{{ '/#awards'   | relative_url }}" data-en="Awards">获奖</a>
+      <a href="{{ '/blog/'     | relative_url }}" data-en="Blog">博客</a>
+    </nav>
+    {% if page.search %}
+    <label class="search">
+      <input id="q" type="search" placeholder="搜索项目 / 技能 / 奖项…" autocomplete="off">
+      <span aria-hidden="true">⌕</span>
+    </label>
+    {% endif %}
+    <button id="lang" class="tgl" type="button" title="Switch to English">EN</button>
+    <button id="theme" class="tgl" type="button" title="切换为深色">
+      <i class="half" aria-hidden="true"></i>
+    </button>
+    <a class="gh" href="https://github.com/noSugarK" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</header>
+
+<main class="wrap" id="top">
+{{ content }}
+</main>
+
+<footer><div class="wrap">
+  <span>© {{ 'now' | date: "%Y" }} noSugarK · {{ site.url | remove: "https://" }}</span>
+  <span>nosugark@qq.com · GitHub @noSugarK</span>
+</div></footer>
+
+<script src="{{ '/assets/js/site.js' | relative_url }}"></script>
+</body>
+</html>

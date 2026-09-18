@@ -1,3 +1,17 @@
-remote_theme: pages-themes/cayman@v0.2.0
+title: noSugarK
+description: noSugarK 的个人主页与博客
+url: https://nosugark.cc.cd
+timezone: Asia/Shanghai
+
+# 文章链接形如 /blog/2026/09/18/hello-world/
+permalink: /blog/:year/:month/:day/:title/
+
 plugins:
-- jekyll-remote-theme # add this line to the plugins list if you already have one
+  - jekyll-feed
+
+# 简历内容已并入首页，这两个文件留在仓库里但不再单独出页面，避免重复内容
+exclude:
+  - README_en.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor

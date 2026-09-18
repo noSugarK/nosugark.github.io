@@ -1,0 +1,280 @@
+/* ==========================================================
+   noSugarK — 包豪斯
+   浅色：三原色实心几何块。深色：收敛成单一强调色，保留几何形。
+   ========================================================== */
+:root{
+  --bh-red:#E1261C; --bh-yellow:#F5C400; --bh-blue:#1B4D9E;
+
+  --bg:#F7F4EC; --paper:#FFFFFF; --fg:#16161A; --muted:#5C5C63; --line:#16161A;
+  --accent:var(--bh-red); --accent-fg:#FFFFFF;
+  --bd:2px;
+
+  /* 几何无衬线，Futura 的精神续作；Century Gothic 在 Windows 上基本都有 */
+  --head:"Futura","Century Gothic","Avant Garde","Trebuchet MS","PingFang SC","Microsoft YaHei",sans-serif;
+  --font:var(--head);
+  /* 包豪斯不用等宽字，注释同样是几何无衬线，靠字号字距区分 */
+  --mono:var(--head);
+  --track:700; --ease:cubic-bezier(.34,1.26,.4,1); --dur:.5s;
+
+  /* 循环用的三原色：色条、区块标记 */
+  --k1:var(--bh-red); --k2:var(--bh-yellow); --k3:var(--bh-blue);
+  /* 技能标签的填充与字色 */
+  --s1:var(--bh-red);    --s1-fg:#FFFFFF;
+  --s2:var(--bh-yellow); --s2-fg:var(--fg);
+  --s3:var(--bh-blue);   --s3-fg:#FFFFFF;
+
+  --facts-bg:var(--bh-yellow);
+  --about-bg:var(--bh-blue); --about-fg:#FFFFFF;
+  --when-bg:var(--fg); --when-fg:var(--bg); --when-pad:6px 10px;
+  --medal-bg:var(--bh-yellow); --medal-fg:var(--fg); --medal-bd:var(--line);
+  --brand-bg:var(--bh-red); --brand-fg:#FFFFFF;
+}
+
+/* ---- 深色：一个强调色，不再花哨 ---- */
+html[data-theme="dark"]{
+  --bg:#121214; --paper:#1A1A1E; --fg:#EDEDE8; --muted:#9A9AA2; --line:#35353C;
+  --accent:#F2C230; --accent-fg:#121214;
+
+  --k1:var(--accent); --k2:var(--accent); --k3:var(--accent);
+  --s1:transparent; --s1-fg:var(--fg);
+  --s2:transparent; --s2-fg:var(--fg);
+  --s3:transparent; --s3-fg:var(--fg);
+
+  --facts-bg:transparent;
+  --about-bg:transparent; --about-fg:var(--fg);
+  --when-bg:transparent; --when-fg:var(--accent); --when-pad:0;
+  --medal-bg:transparent; --medal-fg:var(--accent); --medal-bd:var(--accent);
+  --brand-bg:var(--accent); --brand-fg:#121214;
+}
+
+/* ===================== 基础 ===================== */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:104px}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+/* Bayer 的通用字母表主张废除大写：英文一律小写，中文不受影响。
+   只作用于站点自己的文案——文章标题是作者写的，不能替他改大小写。 */
+.hero h1,.h2 span,.h2 em,nav a,.brand{text-transform:lowercase}
+
+/* ---- 顶栏 ---- */
+.topbar{position:sticky;top:0;z-index:50;background:var(--bg);
+  border-bottom:var(--bd) solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;gap:10px;padding:14px 24px;flex-wrap:wrap}
+.brand{font:var(--track) 19px var(--head);letter-spacing:-.4px;
+  background:var(--brand-bg);color:var(--brand-fg);padding:5px 11px;
+  text-decoration:none;white-space:nowrap}
+nav{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav a{position:relative;text-decoration:none;font-weight:600;font-size:14px;
+  padding:6px 11px;white-space:nowrap;border:var(--bd) solid transparent}
+nav a::after{content:"";position:absolute;left:11px;right:11px;bottom:2px;height:2px;
+  background:var(--accent);transform:scaleX(0);transform-origin:left;
+  transition:transform .28s var(--ease)}
+nav a:hover::after,nav a.on::after{transform:scaleX(1)}
+nav a:hover,nav a.on{color:var(--accent)}
+
+.search{display:flex;align-items:center;border:var(--bd) solid var(--line);background:var(--paper)}
+.search input{border:0;outline:0;padding:8px 12px;width:170px;background:transparent;
+  color:var(--fg);font:500 14px var(--font)}
+.search span{display:grid;place-items:center;width:34px;align-self:stretch;color:var(--muted)}
+
+/* 单按钮开关：语言 / 深浅色 */
+.tgl{display:grid;place-items:center;min-width:42px;height:38px;padding:0 9px;cursor:pointer;
+  border:var(--bd) solid var(--line);background:var(--paper);color:var(--fg);
+  font:700 13px var(--head);transition:all .2s var(--ease)}
+.tgl:hover{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+/* 半填充圆——伊登色环的几何原型，深色时转 180° */
+.half{width:15px;height:15px;border:2px solid currentColor;border-radius:50%;
+  background:linear-gradient(90deg,currentColor 0 50%,transparent 50% 100%);
+  transition:transform .4s var(--ease)}
+html[data-theme="dark"] .half{transform:rotate(180deg)}
+
+.gh{display:flex;align-items:center;gap:6px;text-decoration:none;font:700 13px var(--font);
+  padding:9px 14px;background:var(--fg);color:var(--bg);border:var(--bd) solid var(--fg);
+  transition:transform .2s var(--ease),opacity .2s}
+.gh:hover{transform:translateY(-2px);opacity:.88}
+
+/* ---- 区块标题：几何标记按 圆→方→四分之一圆 / 蓝→红→黄 循环 ---- */
+section{padding:64px 0 0}
+.h2{position:relative;display:flex;flex-direction:column;gap:4px;width:fit-content;
+  margin-bottom:28px;padding-left:42px}
+.h2 em{font:700 11px/1 var(--mono);color:var(--accent);font-style:normal;letter-spacing:2.5px;order:-1}
+.h2 span{font:var(--track) 30px/1.15 var(--head);letter-spacing:-1px}
+.h2::before{content:"";position:absolute;left:0;top:3px;width:26px;height:26px;
+  border:2px solid var(--line)}
+main section:nth-of-type(3n+2) .h2::before{background:var(--k3);border-radius:50%}
+main section:nth-of-type(3n+3) .h2::before{background:var(--k1)}
+main section:nth-of-type(3n+1) .h2::before{background:var(--k2);border-radius:0 0 100% 0}
+
+.card{background:var(--paper);border:var(--bd) solid var(--line);padding:22px;
+  transition:border-color .15s ease,background .15s ease}
+.card:hover{border-color:var(--accent)}
+
+/* ---- Hero ---- */
+.hero{display:grid;grid-template-columns:1.55fr 1fr;gap:40px;padding-top:64px;align-items:start}
+.hero h1{font:var(--track) clamp(40px,7vw,68px)/.98 var(--head);letter-spacing:-2px}
+.hero h1 b{color:var(--accent)}
+.tag{display:inline-block;font:600 12px var(--mono);border:var(--bd) solid var(--line);
+  padding:4px 10px;margin:6px 6px 0 0}
+.hero p{margin-top:20px;font-size:16.5px;color:var(--muted);max-width:50ch}
+/* 黄色信息块 + 压在角上的红圆；压在标题上会毁掉文字对比度，所以放这里 */
+.facts{position:relative;background:var(--facts-bg);border:var(--bd) solid var(--line);padding:20px}
+.facts::before{content:"";position:absolute;right:-24px;top:-24px;width:66px;height:66px;
+  border-radius:50%;background:var(--accent);border:2px solid var(--line)}
+.facts dl{display:grid;grid-template-columns:auto 1fr;gap:10px 16px;font-size:14px}
+.facts dt{font:700 10.5px var(--mono);letter-spacing:1.5px;opacity:.7;
+  white-space:nowrap;padding-top:2px}
+.facts dd{font-weight:600;word-break:break-word}
+
+/* ---- 项目 ---- */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.filters button{font:600 13px var(--font);padding:6px 14px;background:var(--paper);
+  color:var(--muted);border:var(--bd) solid var(--line);cursor:pointer;
+  transition:all .2s var(--ease)}
+.filters button:hover{border-color:var(--accent);color:var(--accent)}
+.filters button.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+/* 色条用 ::before 而不是 border-top，hover 换边框色时不会被吃掉 */
+.proj{position:relative;padding-top:32px;overflow:hidden}
+.proj::before{content:"";position:absolute;left:0;right:0;top:0;height:10px}
+.grid .proj:nth-child(3n+1)::before{background:var(--k1)}
+.grid .proj:nth-child(3n+2)::before{background:var(--k2)}
+.grid .proj:nth-child(3n+3)::before{background:var(--k3)}
+.proj h3{font:var(--track) 19px var(--head);letter-spacing:-.4px}
+.proj .sub{font:600 11px var(--mono);color:var(--accent);letter-spacing:1.5px;margin-bottom:10px}
+.proj p{font-size:15px;color:var(--muted)}
+.stack{display:flex;gap:6px;flex-wrap:wrap}
+.proj .stack{margin-top:16px}
+/* 不要锁在 .proj 里——博客列表的文章标签也用这套芯片样式 */
+.stack i{font:600 11px var(--mono);font-style:normal;border:var(--bd) solid var(--line);
+  padding:2px 8px;color:var(--muted)}
+.proj .go{display:inline-block;margin-top:18px;font:700 13px var(--font);
+  text-decoration:none;color:var(--accent)}
+.proj .go i{display:inline-block;font-style:normal;transition:transform .28s var(--ease)}
+.proj:hover .go i{transform:translateX(6px)}
+.proj.add{display:grid;place-items:center;text-align:center;min-height:170px;
+  padding-top:22px;border-style:dashed;background:transparent;color:var(--muted);
+  font-weight:600;font-size:14px}
+.proj.add::before{display:none}
+.proj.add:hover{color:var(--accent)}
+
+/* ---- 时间线（经历 / 教育 / 文章列表） ---- */
+.tl{display:grid;gap:16px}
+.tl .card{display:grid;grid-template-columns:185px 1fr;gap:24px}
+.when{font:700 12.5px var(--mono);background:var(--when-bg);color:var(--when-fg);
+  padding:var(--when-pad);height:fit-content}
+.tl h3{font:var(--track) 17px var(--head)}
+.tl .role{font:600 12.5px var(--mono);color:var(--accent);margin-bottom:10px}
+/* 列表项用小方块代替圆点 */
+.tl ul{margin-left:0;list-style:none;font-size:14.5px;color:var(--muted)}
+.tl li{position:relative;padding-left:18px;margin-bottom:3px}
+.tl li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:7px;
+  background:var(--accent)}
+
+/* ---- 获奖 / 技能 / 关于 ---- */
+.awards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.award{display:flex;gap:14px;align-items:baseline;padding:15px 18px;font-size:14.5px}
+.medal{font:700 11px var(--mono);background:var(--medal-bg);color:var(--medal-fg);
+  border:var(--bd) solid var(--medal-bd);padding:2px 8px;white-space:nowrap;letter-spacing:.5px;
+  transition:all .2s var(--ease)}
+.award:hover .medal{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.skills{display:flex;gap:9px;flex-wrap:wrap}
+.skill{font:600 14px var(--font);border:var(--bd) solid var(--line);padding:7px 14px;
+  transition:transform .2s var(--ease),border-color .2s}
+.skill:nth-child(3n+1){background:var(--s1);color:var(--s1-fg)}
+.skill:nth-child(3n+2){background:var(--s2);color:var(--s2-fg)}
+.skill:nth-child(3n+3){background:var(--s3);color:var(--s3-fg)}
+.skill:hover{transform:translateY(-3px);border-color:var(--accent)}
+.about{font-size:16px;line-height:1.8;background:var(--about-bg);color:var(--about-fg)}
+html[data-theme="dark"] .about{border-left:6px solid var(--accent)}
+
+footer{margin-top:80px;border-top:var(--bd) solid var(--line);padding:24px 0}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  font:600 12.5px var(--mono);color:var(--muted)}
+.note{font:600 15px var(--mono);color:var(--muted);border:var(--bd) dashed var(--line);
+  padding:26px;text-align:center}
+#empty{display:none}
+
+/* ---- 文章 ---- */
+.post{max-width:72ch;padding-top:56px}
+.post-title{font:var(--track) clamp(30px,5vw,46px)/1.1 var(--head);letter-spacing:-1.5px}
+.post-meta{font:600 12.5px var(--mono);color:var(--accent);letter-spacing:1.5px;margin-top:10px}
+.prose{margin-top:36px;font-size:16.5px;line-height:1.85}
+.prose>*+*{margin-top:1.1em}
+.prose h2,.prose h3{font-family:var(--head);font-weight:var(--track);letter-spacing:-.6px;
+  margin-top:2em;line-height:1.3}
+.prose h2{font-size:26px;padding-left:16px;border-left:8px solid var(--accent)}
+.prose h3{font-size:20px}
+.prose ul,.prose ol{padding-left:22px}
+.prose li+li{margin-top:.4em}
+.prose a{color:var(--accent);text-underline-offset:4px}
+.prose code{font:500 .88em Consolas,"Cascadia Mono",monospace;background:var(--paper);
+  border:1px solid var(--line);padding:1px 5px}
+.prose pre{background:var(--paper);border:var(--bd) solid var(--line);padding:18px;
+  overflow-x:auto}
+.prose pre code{border:0;padding:0;background:transparent;font-size:13.5px;line-height:1.7}
+.prose blockquote{border-left:8px solid var(--accent);padding-left:18px;color:var(--muted)}
+.prose img{max-width:100%;border:var(--bd) solid var(--line)}
+.prose table{width:100%;border-collapse:collapse;font-size:15px}
+.prose th,.prose td{border:1px solid var(--line);padding:8px 12px;text-align:left}
+.prose th{background:var(--paper);font-weight:700}
+.post-back{display:inline-block;margin-top:48px;font:700 13px var(--font);
+  text-decoration:none;color:var(--accent)}
+.post-back i{display:inline-block;font-style:normal;transition:transform .28s var(--ease)}
+.post-back:hover i{transform:translateX(-6px)}
+.post-row h3 a{text-decoration:none}
+.post-row:hover h3 a{color:var(--accent)}
+
+/* ===================== 动效 =====================
+   全部原生 CSS / Web API，不引任何动画库。
+   ============================================== */
+#bar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent);z-index:60;
+  transition:width .08s linear}
+
+.reveal{opacity:0;transform:translateY(16px);
+  transition:opacity var(--dur) var(--ease) var(--d,0s),transform var(--dur) var(--ease) var(--d,0s)}
+.reveal.in{opacity:1;transform:none}
+
+@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.hero h1,#tags,#bio,.facts,.post-title,.post-meta{animation:rise .7s var(--ease) both}
+#tags{animation-delay:.09s} #bio{animation-delay:.18s} .facts{animation-delay:.27s}
+.post-meta{animation-delay:.1s}
+
+::view-transition-old(root),::view-transition-new(root){animation-duration:.3s}
+
+/* 系统开了「减弱动态效果」就全部关掉 */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  .reveal{opacity:1;transform:none}
+  html{scroll-behavior:auto}
+}
+
+/* ===================== 响应式 ===================== */
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;gap:28px;padding-top:40px}
+  .tl .card{grid-template-columns:1fr;gap:10px}
+  .search{order:4;flex:1 1 100%}
+  .search input{width:100%}
+  nav{order:5;flex:1 1 100%}
+  .facts::before{right:-12px;top:-12px;width:46px;height:46px}
+}
+
+/* ===================== 打印 =====================
+   简历是会被打印的，彩块和顶栏在纸上没有意义。
+   ============================================== */
+@media print{
+  .topbar,footer,#bar,.filters,.proj.add{display:none}
+  html[data-theme]{--bg:#FFF;--paper:#FFF;--fg:#000;--muted:#333;--line:#000;
+    --accent:#000;--facts-bg:transparent;--about-bg:transparent;--about-fg:#000;
+    --when-bg:transparent;--when-fg:#000;--when-pad:0;
+    --medal-bg:transparent;--medal-fg:#000;--medal-bd:#000;
+    --s1:transparent;--s2:transparent;--s3:transparent;
+    --s1-fg:#000;--s2-fg:#000;--s3-fg:#000}
+  .proj::before,.facts::before,.h2::before{display:none}
+  .h2{padding-left:0}
+  section{padding-top:24px;break-inside:avoid}
+  .card{break-inside:avoid}
+  .reveal{opacity:1;transform:none}
+}
