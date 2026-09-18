@@ -3,8 +3,8 @@
    需要翻译的字段写成 {zh:"…", en:"…"}；技术名 / URL / 日期直接写字符串。
    ========================================================== */
 const BIO = {
-  zh:"计算机科学与技术专业，现在创首科技做技术支持。写 Django + Vue 的 Web 系统和 PySide6 桌面工具，也做视觉识别与大模型接入。ICPC 省赛银奖、蓝桥杯国赛二等奖。",
-  en:"CS graduate, now doing technical support at Chuangshou Technology. I build Django + Vue web systems and PySide6 desktop tools, and work on vision models and LLM integration. ICPC provincial silver, Lanqiao Cup national 2nd prize."
+  zh:"计算机科学与技术专业，现在创首科技做技术支持。写 Django + Vue 的 Web 系统、Tauri 与 PySide6 的桌面应用，也做视觉识别与大模型接入。ICPC 省赛银奖、蓝桥杯国赛二等奖。",
+  en:"CS graduate, now doing technical support at Chuangshou Technology. I build Django + Vue web systems, Tauri and PySide6 desktop apps, and work on vision models and LLM integration. ICPC provincial silver, Lanqiao Cup national 2nd prize."
 };
 const TAGS = [
   {zh:"全栈开发",en:"Full-stack"},{zh:"计算机视觉",en:"Computer Vision"},
@@ -18,25 +18,61 @@ const FACTS = [
   [{zh:"邮箱",en:"EMAIL"},  "nosugark@qq.com"],
   [{zh:"状态",en:"STATUS"}, {zh:"在职",en:"employed"}],
 ];
-const CATS = [ {zh:"全部",en:"All"}, {zh:"Web",en:"Web"}, {zh:"桌面",en:"Desktop"}, {zh:"工具",en:"Tools"} ];
+/* 每个分类都必须有项目，否则点进去是空的。加分类前先确认有东西归进去 */
+const CATS = [ {zh:"全部",en:"All"}, {zh:"Web",en:"Web"}, {zh:"桌面",en:"Desktop"},
+               {zh:"AI 视觉",en:"AI & Vision"} ];
 
+/* private:true 的仓库未公开，渲染成灰字而不是链接——让访客点出 404 更糟。
+   有公开站点的用 site 字段，优先链站点。仓库开放后把 private 删掉即可。 */
 const PROJECTS = [
+  {name:"ReaLingo", cat:"桌面", site:"https://nosugark.github.io/ReaLingo/",
+   url:"https://github.com/noSugarK/ReaLingo",
+   desc:{zh:"桌面实时同声传译。接阿里云百炼 Qwen3.5-LiveTranslate，麦克风 / 系统声音 / 本地文件三种音源，60 语种互译；独立字幕窗可置顶、锁定后鼠标点击穿透，不挡住下面的播放器。",
+         en:"Real-time desktop interpretation. Built on Alibaba Bailian's Qwen3.5-LiveTranslate; takes audio from the mic, system output or a local file and translates across 60 languages. The detached subtitle window stays on top and, once locked, passes clicks through so it never blocks the player underneath."},
+   stack:["Tauri2","Rust","Vue3","TypeScript"]},
+
+  {name:"AIM 赛事管理系统", cat:"Web", private:true, url:"https://github.com/junco-liu/vex-aim-score",
+   desc:{zh:"VEX AIM 挑战赛的计分、排名与对阵一站式系统，前后端独立完成。支持 Docker 部署与 PyInstaller 单机打包（赛场一台笔记本即可开赛）；场控经 Web Bluetooth 直连硬件，计时用自研的分段时钟模型。",
+         en:"One-stop scoring, ranking and bracket system for the VEX AIM challenge, built solo front to back. Ships either as a Docker deployment or a single PyInstaller executable so one laptop can run an event; field control talks to the hardware over Web Bluetooth, timing uses a custom segmented-clock model."},
+   stack:["Vue3","Pinia","Django5","DRF","PostgreSQL","Docker"]},
+
+  {name:"AIM Agent", cat:"AI 视觉", private:true, url:"https://github.com/junco-liu/aim-agent-dev",
+   desc:{zh:"让 VEX AIM 机器人听懂人话。大模型负责意图理解与动作规划，本地 faster-whisper 识音、Piper 合成语音，工具层把 LED、运动、屏幕、声音、视觉封装成可被模型调用的能力。",
+         en:"Makes the VEX AIM robot follow spoken instructions. An LLM handles intent and action planning; speech recognition (faster-whisper) and synthesis (Piper) run locally, and a tool layer exposes LEDs, motion, screen, sound and vision as callable capabilities."},
+   stack:["PySide6","OpenAI API","faster-whisper","Piper","OpenCV"]},
+
+  {name:"aim-plate", cat:"Web", private:true, site:"https://vexaim.cc.cd/",
+   url:"https://github.com/junco-liu/aim-plate",
+   desc:{zh:"浏览器直连机器人的局域网控制台，没有后端。四条 WebSocket 全由用户浏览器发起，Pyodide 在页面里跑 CPython，程序和数据都不出本机。官方方案要装 Python 跑脚本，这个打开网页就能用。",
+         en:"A LAN console that drives the robot straight from the browser, with no backend at all. All four WebSockets are opened by the user's own browser and Pyodide runs CPython in-page, so neither the program nor the data ever leaves their machine — where the official route needs a Python install and a script, this just needs a tab."},
+   stack:["Pyodide","WebSocket","Vanilla JS"]},
+
+  {name:"aim-plate-desktop", cat:"桌面", private:true,
+   url:"https://github.com/junco-liu/aim-plate-desktop",
+   desc:{zh:"aim-plate 的 Tauri 外壳，只为两件事存在：窗口来源是 loopback，连 ws://192.168.x.x 不再弹本地网络权限框；Pyodide 与素材全部打进安装包，装完拔网线照样能用。",
+         en:"A Tauri shell around aim-plate that exists for exactly two reasons: the window's origin is loopback, so reaching ws://192.168.x.x no longer triggers the Local Network Access prompt; and Pyodide plus all assets are bundled, so it works with the network cable pulled."},
+   stack:["Tauri2","Rust","Python"]},
+
+  {name:"tools_for_3d_detection", cat:"AI 视觉",
+   url:"https://github.com/noSugarK/tools_for_3d_detection",
+   desc:{zh:"3D 标注自动化质检工具，本科毕业设计。用 YOLO11n 配合 3D→2D 投影与 Qwen3-VL，校验图像与人工标注是否真的对应——这正是纯脚本查不出来的那一类错误。",
+         en:"Automated QA for 3D annotations, my final-year project. YOLO11n plus 3D-to-2D projection and Qwen3-VL check whether an image and its human annotation actually correspond — precisely the class of error a format-checking script cannot catch."},
+   stack:["Python3.13","PySide6","YOLO11n","OpenCV"]},
+
   {name:"algoscent", cat:"Web", url:"https://github.com/noSugarK/algoscent",
-   desc:{zh:"基于大语言模型的个性化调香网站。前后端分离，用户填问卷后调用 Qwen 模型做个性化分析。",
-         en:"LLM-powered personalized perfumery site. Decoupled front/back end; a Qwen model analyses each user's questionnaire."},
+   desc:{zh:"基于大语言模型的个性化调香网站。前后端分离，用户填完问卷后调用 Qwen 模型做个性化分析并给出配方建议。",
+         en:"LLM-powered personalized perfumery site. Decoupled front and back end; once a user finishes the questionnaire a Qwen model analyses it and proposes a formulation."},
    stack:["Django5","Vue3","ElementPlus","MySQL8"]},
+
   {name:"hbszDataVisual", cat:"Web", url:"https://github.com/noSugarK/hbszDataVisual",
-   desc:{zh:"基于 Django5 的数据分析可视化网站，实习期间落地的内部平台。",
-         en:"Django5 data-analysis dashboard — an internal platform shipped during my internship."},
+   desc:{zh:"基于 Django5 的数据分析可视化平台，实习期间落地并交付业务方使用。涵盖数据可视化、数据填报、用户管理与数据预测。",
+         en:"A Django5 analytics and visualisation platform built and handed over to the business during my internship: dashboards, data entry, user management and forecasting."},
    stack:["Django5","Bootstrap5","ECharts5","jQuery3"]},
-  {name:"tools_for_3d_detection", cat:"桌面", url:"https://github.com/noSugarK/tools_for_3d_detection",
-   desc:{zh:"3D 标注自动化质检工具。集成 YOLO、3D→2D 投影与 Qwen3-VL，校验人工标注质量。",
-         en:"Automated QA tool for 3D annotations. Combines YOLO, 3D→2D projection and Qwen3-VL to verify manual labels."},
-   stack:["Python3.13","PySide6","Ultralytics","OpenCV"]},
 ];
 
-const SKILLS = ["Python","C / C++","Django","Vue3","PySide6 / PyQt6","MySQL",
-                "ECharts","PyTorch","YOLO / Ultralytics","OpenCV","LLM / Agent","Git"];
+const SKILLS = ["Python","C / C++","Django / DRF","Vue3","Tauri / Rust","PySide6 / PyQt6",
+                "MySQL / PostgreSQL","YOLO / Ultralytics","OpenCV","PyTorch",
+                "LLM / Agent","WebSocket","Docker","Git"];
 
 const EDU = [
   {when:"2022.09 - 2026.06",
@@ -119,6 +155,9 @@ const ABOUT = {
 const UI = {
   more:{zh:"+ 更多项目施工中",en:"+ More projects in progress"},
   repo:{zh:"查看仓库",en:"View repo"},
+  site:{zh:"访问站点",en:"Visit site"},
+  privateRepo:{zh:"仓库未公开",en:"Repo not public"},
+  privateTag:{zh:"私有",en:"PRIVATE"},
   search:{zh:"搜索项目 / 技能 / 奖项…",en:"Search projects / skills / awards…"},
   searchPosts:{zh:"搜索文章标题 / 标签 / 正文…",en:"Search posts by title, tag or text…"},
   findInPost:{zh:"在本文中查找…  ↵ 下一个",en:"Find in this article…  ↵ next"},
@@ -161,15 +200,24 @@ function renderResume(){
   $("#filters").innerHTML = CATS.map(c=>
     `<button data-f="${esc(c.zh)}"${c.zh===cat?' class="on"':''}>${esc(t(c))}</button>`).join("");
 
+  /* 链接优先级：公开站点 > 公开仓库 > 灰字「仓库未公开」。
+     私有仓库不做成链接——让访客点出一个 404 比不给链接更糟。 */
+  const cta = p => p.site
+    ? `<a class="go" href="${esc(p.site)}" target="_blank" rel="noopener">${esc(t(UI.site))} <i>→</i></a>`
+    : !p.private
+      ? `<a class="go" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(t(UI.repo))} <i>→</i></a>`
+      : `<span class="go off">${esc(t(UI.privateRepo))}</span>`;
+
   /* view-transition-name 让筛选时卡片是「移动」而不是「闪现」 */
   $("#grid").innerHTML = PROJECTS.map((p,i)=>`
     <article class="card proj" style="view-transition-name:proj${i}" data-cat="${esc(p.cat)}"
-             data-s="${idx(p.name,p.desc,p.stack,p.cat)}">
+             data-s="${idx(p.name,p.desc,p.stack,p.cat,p.site||"")}">
       <h3>${esc(p.name)}</h3>
-      <div class="sub">${esc(t(CATS.find(c=>c.zh===p.cat)||p.cat)).toUpperCase()}</div>
+      <div class="sub">${esc(t(CATS.find(c=>c.zh===p.cat)||p.cat)).toUpperCase()}${
+        p.private ? ` · ${esc(t(UI.privateTag))}` : ""}</div>
       <p>${esc(t(p.desc))}</p>
       <div class="stack">${p.stack.map(s=>`<i>${esc(s)}</i>`).join("")}</div>
-      <a class="go" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(t(UI.repo))} <i>→</i></a>
+      ${cta(p)}
     </article>`).join("") +
     `<article class="card proj add" style="view-transition-name:projAdd" data-cat="全部" data-s="">
        <div>${esc(t(UI.more))}</div></article>`;
