@@ -3,19 +3,20 @@
    需要翻译的字段写成 {zh:"…", en:"…"}；技术名 / URL / 日期直接写字符串。
    ========================================================== */
 const BIO = {
-  zh:"计算机科学与技术在读，做 Django + Vue 的 Web 系统，也写 PySide6 桌面工具。ICPC 省赛银奖、蓝桥杯国赛二等奖。正在找工作。",
-  en:"CS undergrad. I build Django + Vue web systems and PySide6 desktop tools. ICPC provincial silver, Lanqiao Cup national 2nd prize. Currently job hunting."
+  zh:"计算机科学与技术专业，现在创首科技做技术支持。写 Django + Vue 的 Web 系统和 PySide6 桌面工具，也做视觉识别与大模型接入。ICPC 省赛银奖、蓝桥杯国赛二等奖。",
+  en:"CS graduate, now doing technical support at Chuangshou Technology. I build Django + Vue web systems and PySide6 desktop tools, and work on vision models and LLM integration. ICPC provincial silver, Lanqiao Cup national 2nd prize."
 };
 const TAGS = [
-  {zh:"全栈开发",en:"Full-stack"},{zh:"数据可视化",en:"Data Viz"},
-  {zh:"算法竞赛",en:"Competitive Programming"},"Python / C++"
+  {zh:"全栈开发",en:"Full-stack"},{zh:"计算机视觉",en:"Computer Vision"},
+  {zh:"大模型接入",en:"LLM Integration"},{zh:"算法竞赛",en:"Competitive Programming"},
+  "Python / C++"
 ];
 const FACTS = [
   [{zh:"出生",en:"BORN"},   "2004.05"],
   [{zh:"籍贯",en:"FROM"},   {zh:"湖北 · 荆州",en:"Jingzhou, Hubei"}],
   [{zh:"院校",en:"SCHOOL"}, {zh:"湖北第二师范学院",en:"Hubei Univ. of Education"}],
   [{zh:"邮箱",en:"EMAIL"},  "nosugark@qq.com"],
-  [{zh:"状态",en:"STATUS"}, {zh:"2026.06 毕业 / 可实习",en:"Graduating 2026.06 / open to work"}],
+  [{zh:"状态",en:"STATUS"}, {zh:"在职",en:"employed"}],
 ];
 const CATS = [ {zh:"全部",en:"All"}, {zh:"Web",en:"Web"}, {zh:"桌面",en:"Desktop"}, {zh:"工具",en:"Tools"} ];
 
@@ -35,37 +36,69 @@ const PROJECTS = [
 ];
 
 const SKILLS = ["Python","C / C++","Django","Vue3","PySide6 / PyQt6","MySQL",
-                "ECharts","PyTorch","Ultralytics","Git","Bootstrap","OpenCV"];
+                "ECharts","PyTorch","YOLO / Ultralytics","OpenCV","LLM / Agent","Git"];
 
 const EDU = [
-  {when:"2022.09 – 2026.06",
+  {when:"2022.09 - 2026.06",
    org:{zh:"湖北第二师范学院 · 计算机科学与技术",en:"Hubei University of Education · Computer Science"},
    role:{zh:"本科 / GPA 3.6 · 5.0",en:"B.Eng. / GPA 3.6 of 5.0"},
    items:[{zh:"算法分析与设计、数据结构、编译原理、软件测试、网络安全、Python 数据分析",
            en:"Algorithm design, data structures, compilers, software testing, network security, Python data analysis"}]},
 ];
 
+/* 按 工作 / 实习 / 在校 分组，组内倒序。
+   kind 同时决定时间线节点和组标记的几何形状，见 main.css 的 [data-kind] */
 const EXP = [
-  {when:"2025.07 – 2025.09",
-   org:{zh:"湖北市政集团",en:"Hubei Municipal Group"},
-   role:{zh:"数据分析 / 全栈开发（实习）",en:"Data Analysis / Full-stack (Intern)"},
-   items:[
-     {zh:"基于 Django5 的可视化数据分析平台：数据可视化、填报、用户管理、数据预测",
-      en:"Django5 analytics platform: visualisation, data entry, user management, forecasting"},
-     {zh:"负责前期数据清洗、中期分析方式设计、后期效果落地",
-      en:"Owned data cleaning, analysis design, and final delivery"},
-     {zh:"Bootstrap + Chart.js + Font Awesome 构建前端",
-      en:"Built the front end with Bootstrap, Chart.js and Font Awesome"}]},
-  {when:"2024.02 – 2025.01",
-   org:{zh:"HUE_ACM 算法协会",en:"HUE_ACM Algorithm Club"},
-   role:{zh:"会长",en:"President"},
-   items:[{zh:"管理团队并提升成员编程能力",en:"Led the team and coached members' programming skills"},
-          {zh:"收集竞赛信息，统筹报名与参赛",en:"Tracked contests and coordinated registration and participation"}]},
-  {when:"2023.09 – 2024.09",
-   org:{zh:"院社团指导中心",en:"Faculty Student Club Center"},
-   role:{zh:"指导主席",en:"Chair"},
-   items:[{zh:"负责学院社团活动指导与审核",en:"Supervised and reviewed faculty club activities"},
-          {zh:"担任院校两级沟通协调枢纽",en:"Acted as liaison between faculty and university levels"}]},
+  {kind:"work", kicker:"WORK", group:{zh:"工作经历",en:"Work"}, list:[
+    {when:{zh:"2026.03 - 至今",en:"2026.03 - Present"},
+     org:{zh:"创首科技（武汉）有限公司",en:"Chuangshou Technology (Wuhan)"},
+     role:{zh:"技术支持",en:"Technical Support"},
+     items:[
+       {zh:"搭建 AIM Agent，将公司产品接入大语言模型，实现语音对话控制与图像理解",
+        en:"Built the AIM Agent connecting company products to an LLM, adding voice-command control and image understanding"},
+       {zh:"独立完成赛事管理系统前后端：赛队登记、对阵表自动生成、计分计时与场控",
+        en:"Solely built a competition management system, front and back end: team registration, automatic bracket generation, scoring, timing and floor control"},
+       {zh:"扩展视觉能力模块：人脸情绪识别、手势识别、图像识别",
+        en:"Shipped vision modules: facial emotion recognition, gesture recognition and image recognition"},
+       {zh:"吃透产品线并产出配套课程与扩展应用，同时参与硬件搭建与嵌入式编程",
+        en:"Learned the product line end to end and produced companion courseware and extension apps; also handled hardware assembly and embedded programming"}]},
+  ]},
+
+  {kind:"intern", kicker:"INTERNSHIP", group:{zh:"实习经历",en:"Internships"}, list:[
+    {when:"2025.10 - 2026.02",
+     org:{zh:"东风悦享科技有限公司",en:"Dongfeng Yuexiang Technology"},
+     role:{zh:"数据质检辅助工程师",en:"Data QA Engineer (Intern)"},
+     items:[
+       {zh:"对已标注数据做格式与数值校验，用 Python 编写自动化脚本批量质检与验收",
+        en:"Validated the format and values of annotated data; wrote Python scripts for batch quality checks and acceptance"},
+       {zh:"同期完成毕业设计：基于 YOLO11n 的 3D 标注自动化质检工具",
+        en:"Delivered my final-year project in parallel: an automated 3D-annotation QA tool built on YOLO11n"},
+       {zh:"补上纯脚本的盲区——脚本只能查格式，查不出图像与标注是否真的对应",
+        en:"Closed the blind spot of script-only checking: scripts verify format, not whether an image and its annotation actually match"}]},
+    {when:"2025.07 - 2025.09",
+     org:{zh:"湖北市政集团",en:"Hubei Municipal Group"},
+     role:{zh:"数据分析 / 全栈开发",en:"Data Analysis / Full-stack (Intern)"},
+     items:[
+       {zh:"独立交付基于 Django5 的数据分析平台：数据可视化、数据填报、用户管理、数据预测",
+        en:"Delivered a Django5 analytics platform end to end: visualisation, data entry, user management and forecasting"},
+       {zh:"从前期数据清洗、中期分析口径设计到后期效果落地全程负责",
+        en:"Owned the whole chain — data cleaning, analysis design, and final delivery"},
+       {zh:"前端使用 Bootstrap、Chart.js、Font Awesome 构建页面效果",
+        en:"Built the front end with Bootstrap, Chart.js and Font Awesome"}]},
+  ]},
+
+  {kind:"campus", kicker:"CAMPUS", group:{zh:"在校经历",en:"Campus"}, list:[
+    {when:"2024.02 - 2025.01",
+     org:{zh:"HUE_ACM 算法协会",en:"HUE_ACM Algorithm Club"},
+     role:{zh:"会长",en:"President"},
+     items:[{zh:"管理团队并提升成员编程能力",en:"Led the team and coached members' programming skills"},
+            {zh:"收集整理竞赛信息，统筹报名与参赛",en:"Tracked contest information and coordinated registration and participation"}]},
+    {when:"2023.09 - 2024.09",
+     org:{zh:"院社团指导中心",en:"Faculty Student Club Center"},
+     role:{zh:"指导主席",en:"Chair"},
+     items:[{zh:"负责学院所属社团的活动指导与审核",en:"Supervised and reviewed activities of the faculty's student clubs"},
+            {zh:"担任院校两级沟通协调枢纽",en:"Acted as liaison between faculty and university levels"}]},
+  ]},
 ];
 
 const AWARDS = [
@@ -144,12 +177,17 @@ function renderResume(){
   $("#skills-list").innerHTML = SKILLS.map(s=>`<span class="skill" data-s="${esc(s)}">${esc(s)}</span>`).join("");
 
   const tl = list => list.map(e=>`
-    <article class="card" data-s="${idx(e.org,e.role,e.items)}">
-      <div class="when">${esc(e.when)}</div>
+    <article class="card" data-s="${idx(e.when,e.org,e.role,e.items)}">
+      <div class="when">${esc(t(e.when))}</div>
       <div><h3>${esc(t(e.org))}</h3><div class="role">${esc(t(e.role))}</div>
         <ul>${e.items.map(i=>`<li>${esc(t(i))}</li>`).join("")}</ul></div>
     </article>`).join("");
-  $("#exp-list").innerHTML = tl(EXP);
+  /* 分组：每组一条竖轴，组内条目挂节点。空组由 filter() 收掉 */
+  $("#exp-list").innerHTML = EXP.map(g=>`
+    <div class="tl-sec" data-kind="${esc(g.kind)}">
+      <h3 class="tl-title">${esc(t(g.group))}<em>${esc(g.kicker)}</em></h3>
+      ${tl(g.list)}
+    </div>`).join("");
   $("#edu-list").innerHTML = tl(EDU);
 
   $("#awards-list").innerHTML = AWARDS.map(([m,a])=>`
@@ -208,7 +246,8 @@ function filter(){
     const okQ = !q || el.dataset.s.toLowerCase().includes(q);
     el.hidden = !(okC && okQ);
   });
-  $$("main section").forEach(s=>{
+  /* 整段空了就折叠。也作用于经历分组，否则筛掉全部条目后只剩一个光秃秃的组标题 */
+  $$("main section, .tl-sec").forEach(s=>{
     const inner = s.querySelectorAll("[data-s]");
     s.hidden = inner.length > 0 && ![...inner].some(e=>!e.hidden);
   });
