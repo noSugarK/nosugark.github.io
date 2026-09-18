@@ -195,6 +195,33 @@ main section:nth-of-type(3n+1) .h2::before{background:var(--k2);border-radius:0 
 .proj.add::before{display:none}
 .proj.add:hover{color:var(--accent)}
 
+/* ---- 时间线竖轴：只给 .timeline，博客列表同样用 .tl 但不该长出轴 ----
+   --off = 节点左偏量，--node = 节点边长；改这两个就能整体缩放 */
+.timeline{--off:28px; --node:16px; padding-left:calc(var(--off) + 14px)}
+.tl-sec{position:relative;display:grid;gap:16px}
+.tl-sec+.tl-sec{margin-top:36px}
+/* 轴画在分组上，组与组之间自然断开 */
+.tl-sec::before{content:"";position:absolute;width:2px;background:var(--line);
+  left:calc(var(--node)/2 - 1px - var(--off));top:12px;bottom:14px}
+.timeline .tl-title{position:relative;margin-bottom:4px;
+  font:700 11px var(--mono);letter-spacing:2.5px;color:var(--accent)}
+.timeline .tl-title em{font-style:normal;margin-left:10px;opacity:.5}
+.timeline .tl-title::before{content:"";position:absolute;top:-1px;
+  left:calc(-2px - var(--off));width:calc(var(--node) + 4px);height:calc(var(--node) + 4px);
+  border:2px solid var(--line)}
+/* 条目节点：中空，卡片 hover 时描边转强调色，跟卡片边框联动 */
+.timeline .card{position:relative}
+.timeline .card::before{content:"";position:absolute;top:24px;
+  left:calc(-1 * var(--off));width:var(--node);height:var(--node);
+  background:var(--bg);border:2px solid var(--line);transition:border-color .15s ease}
+.timeline .card:hover::before{border-color:var(--accent)}
+/* 几何原形按分组循环，与区块标题那套一致：方=工作、圆=实习、四分之一圆=在校 */
+[data-kind="work"]   .tl-title::before{background:var(--k1)}
+[data-kind="intern"] .tl-title::before{background:var(--k3);border-radius:50%}
+[data-kind="campus"] .tl-title::before{background:var(--k2);border-radius:0 0 100% 0}
+[data-kind="intern"] .card::before{border-radius:50%}
+[data-kind="campus"] .card::before{border-radius:0 0 100% 0}
+
 /* ---- 时间线（经历 / 教育 / 文章列表） ---- */
 .tl{display:grid;gap:16px}
 .tl .card{display:grid;grid-template-columns:185px 1fr;gap:24px}
@@ -333,6 +360,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
 @media(max-width:900px){
   .hero{grid-template-columns:1fr;gap:28px;padding-top:40px}
   .tl .card{grid-template-columns:1fr;gap:10px}
+  .timeline{--off:20px; --node:12px}   /* 窄屏收窄竖轴，别再吃正文宽度 */
   .search{order:4;flex:1 1 100%}
   .search input{width:100%}
   nav{order:5;flex:1 1 100%}
