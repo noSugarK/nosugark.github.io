@@ -189,6 +189,8 @@ main section:nth-of-type(3n+1) .h2::before{background:var(--k2);border-radius:0 
   text-decoration:none;color:var(--accent)}
 .proj .go i{display:inline-block;font-style:normal;transition:transform .28s var(--ease)}
 .proj:hover .go i{transform:translateX(6px)}
+/* 未公开的仓库渲染成灰字而不是链接：点出 404 比没有链接更伤 */
+.proj .go.off{color:var(--muted);opacity:.75}
 .proj.add{display:grid;place-items:center;text-align:center;min-height:170px;
   padding-top:22px;border-style:dashed;background:transparent;color:var(--muted);
   font-weight:600;font-size:14px}
