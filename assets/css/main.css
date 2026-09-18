@@ -51,6 +51,36 @@ html[data-theme="dark"]{
   --hl:#4A4520; --hl-fg:var(--fg); --hl-cur:var(--accent); --hl-cur-fg:#121214;
 }
 
+/* ===================== 光标 =====================
+   原生 cursor: url()，不做 JS 跟随——JS 光标永远慢一帧，
+   而且要先 cursor:none，脚本一出错就彻底没有光标。
+   箭头 = 默认，圆 = 可点击：切换几何原形本身就是状态提示。
+   实心填充 + 描边，比系统细线箭头好找。
+   注意两点：data URI 里的 # 必须写成 %23；
+   别在具体规则里再写 cursor:pointer，那会比下面的 button 选择器更具体、把圆盖掉。
+   ============================================== */
+/* 箭头是凹四边形：尖端 → 右翼尖 → 凹口(反折) → 下翼尖，再沿左边回到尖端。
+   四个顶点的 miter 比都在 2.7~3.2、低于默认 miterlimit 4，所以能用尖角接合，
+   不必退化成 round——包豪斯要的就是硬边。 */
+:root{
+  --cur:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 3L21.6 14.4L12.6 16.2L9 25.2Z' fill='%23E1261C' stroke='%2316161A' stroke-width='2.2' stroke-linejoin='miter'/%3E%3C/svg%3E") 2 2, auto;
+  --cur-hit:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23E1261C' stroke='%2316161A' stroke-width='2.5'/%3E%3C/svg%3E") 14 14, pointer;
+}
+html[data-theme="dark"]{
+  --cur:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 3L21.6 14.4L12.6 16.2L9 25.2Z' fill='%23F2C230' stroke='%23121214' stroke-width='2.2' stroke-linejoin='miter'/%3E%3C/svg%3E") 2 2, auto;
+  --cur-hit:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23F2C230' stroke='%23121214' stroke-width='2.5'/%3E%3C/svg%3E") 14 14, pointer;
+}
+html{cursor:var(--cur)}
+a,button,summary,[role="button"]{cursor:var(--cur-hit)}
+/* 输入框保留系统 I 形光标——那是不该动的可用性提示 */
+input,textarea,select,.search{cursor:text}
+/* Windows 高对比度等强制颜色模式下交还系统光标：
+   那些用户往往专门调过光标大小和颜色，不该被覆盖 */
+@media (forced-colors: active){
+  html{cursor:auto}
+  a,button,summary,[role="button"]{cursor:pointer}
+}
+
 /* ===================== 基础 ===================== */
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-padding-top:104px}
@@ -86,7 +116,7 @@ a{color:inherit}
 .search span{display:grid;place-items:center;width:34px;align-self:stretch;color:var(--muted)}
 
 /* 单按钮开关：语言 / 深浅色 */
-.tgl{display:grid;place-items:center;min-width:42px;height:38px;padding:0 9px;cursor:pointer;
+.tgl{display:grid;place-items:center;min-width:42px;height:38px;padding:0 9px;
   border:var(--bd) solid var(--line);background:var(--paper);color:var(--fg);
   font:700 13px var(--head);transition:all .2s var(--ease)}
 .tgl:hover{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
@@ -136,7 +166,7 @@ main section:nth-of-type(3n+1) .h2::before{background:var(--k2);border-radius:0 
 /* ---- 项目 ---- */
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
 .filters button{font:600 13px var(--font);padding:6px 14px;background:var(--paper);
-  color:var(--muted);border:var(--bd) solid var(--line);cursor:pointer;
+  color:var(--muted);border:var(--bd) solid var(--line);
   transition:all .2s var(--ease)}
 .filters button:hover{border-color:var(--accent);color:var(--accent)}
 .filters button.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
