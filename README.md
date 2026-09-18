@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1>
-<a href="/简历.html">noSugarK</a> 个人博客
+<a href="https://nosugark.github.io/">noSugarK</a> 个人主页
 </h1>
 
 <h4>
@@ -10,8 +10,6 @@
 <img src="https://img.shields.io/github/stars/noSugarK/nosugark.github.io?style=social" alt="Stars">
 <img src="https://img.shields.io/github/license/noSugarK/nosugark.github.io?style=social" alt="License" >
 </h4>
-
-<a href="/README_en.html">English</a> | 中文
 
 </div>
 
