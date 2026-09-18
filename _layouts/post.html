@@ -11,3 +11,6 @@ layout: default
   </div>
   <a class="post-back" href="{{ '/blog/' | relative_url }}"><i>←</i> <span data-en="Back to blog">返回博客</span></a>
 </article>
+
+{%- comment -%} 目录由 JS 从 .prose 的 h2/h3 生成；标题少于两个就自己移除 {%- endcomment -%}
+<nav class="toc" id="toc" aria-label="目录"></nav>

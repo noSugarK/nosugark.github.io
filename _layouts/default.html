@@ -33,12 +33,14 @@ try{
       <a href="{{ '/#awards'   | relative_url }}" data-en="Awards">获奖</a>
       <a href="{{ '/blog/'     | relative_url }}" data-en="Blog">博客</a>
     </nav>
-    {% if page.search %}
+    {%- comment -%}
+      搜索框每页都有，行为由 JS 按页面类型分流：
+      首页筛简历、列表页筛文章、文章页则是文内查找。
+    {%- endcomment -%}
     <label class="search">
       <input id="q" type="search" placeholder="搜索项目 / 技能 / 奖项…" autocomplete="off">
-      <span aria-hidden="true">⌕</span>
+      <span id="qinfo" aria-live="polite">⌕</span>
     </label>
-    {% endif %}
     <button id="lang" class="tgl" type="button" title="Switch to English">EN</button>
     <button id="theme" class="tgl" type="button" title="切换为深色">
       <i class="half" aria-hidden="true"></i>
@@ -49,6 +51,11 @@ try{
 
 <main class="wrap" id="top">
 {{ content }}
+{%- comment -%}
+  「没有匹配」必须是 main 的直接子元素——放进 section 里的话，
+  filter() 折叠空 section 时会把这条提示一起藏掉。
+{%- endcomment -%}
+<p class="note" id="empty" data-en="Nothing matched.">没有匹配的内容。</p>
 </main>
 
 <footer><div class="wrap">
