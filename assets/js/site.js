@@ -452,6 +452,63 @@ $("#filters")?.addEventListener("click", e=>{
   });
 });
 
+/* ===================== 联系方式二维码 =====================
+   页面里只存链接，码在浏览器现编码现画。
+   编码器（MIT，本地化在 vendor/）在首次悬停时才注入 <script>，
+   不碰这两个图标就一个字节都不加载。显示与否全交给 CSS 的 :hover / :focus-within。
+   ======================================================== */
+const qrLib = $(".contacts")?.dataset.lib;
+let qrLoading = null;
+const loadQrLib = () => qrLoading ||= new Promise((res, rej)=>{
+  if(window.qrcode) return res(window.qrcode);
+  const el = document.createElement("script");
+  el.src = qrLib;
+  el.onload = ()=> window.qrcode ? res(window.qrcode) : rej(new Error("no qrcode"));
+  el.onerror = ()=> rej(new Error("load failed"));
+  document.head.appendChild(el);
+});
+
+$$(".qr-host").forEach(host => {
+  const btn = host.querySelector("[data-qr]"), box = host.querySelector(".qr-box");
+  if(!btn || !box || !qrLib) return;
+  let drawn = false;
+
+  async function draw(){
+    if(drawn) return;
+    drawn = true;                       /* 先占位，避免连续悬停重复触发 */
+    try{
+      const qrcode = await loadQrLib();
+      const qr = qrcode(0, "M");        /* 0 = 按内容自动选版本 */
+      qr.addData(btn.dataset.qr);
+      qr.make();
+      const n = qr.getModuleCount(), Q = 2, size = n + Q * 2;
+      /* 同一行连续的黑块并成一段，路径短一大半 */
+      let d = "";
+      for(let y = 0; y < n; y++){
+        for(let x = 0; x < n; x++){
+          if(!qr.isDark(y, x)) continue;
+          let w = 1;
+          while(x + w < n && qr.isDark(y, x + w)) w++;
+          d += `M${x + Q} ${y + Q}h${w}v1h-${w}z`;
+          x += w - 1;
+        }
+      }
+      box.innerHTML =
+        `<svg viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges" aria-hidden="true">` +
+        `<rect width="${size}" height="${size}" fill="#fff"/>` +
+        `<path fill="#16161A" d="${d}"/></svg>`;
+    }catch{
+      /* 编码器没起来也得给出路：把链接本身显示出来 */
+      drawn = false;
+      box.textContent = btn.dataset.qr;
+      box.classList.add("qr-fallback");
+    }
+  }
+
+  ["pointerenter", "focusin"].forEach(ev => host.addEventListener(ev, draw));
+  btn.addEventListener("click", draw);   /* 触屏点一下也先把码备好 */
+});
+
 setLang(lang);
 if(!isHome){ animate(); filter(); }   /* 简历外的页面：进入动画和筛选各跑一次 */
 syncToc();

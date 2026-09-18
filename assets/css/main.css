@@ -55,7 +55,8 @@ html[data-theme="dark"]{
    原生 cursor: url()，不做 JS 跟随——JS 光标永远慢一帧，
    而且要先 cursor:none，脚本一出错就彻底没有光标。
    箭头 = 默认，圆 = 可点击：切换几何原形本身就是状态提示。
-   实心填充 + 描边，比系统细线箭头好找。
+   箭头实心填充，比系统细线箭头好找；圆只留实心描边、填充压到 30%，
+   否则停在链接上会把字挡住。
    注意两点：data URI 里的 # 必须写成 %23；
    别在具体规则里再写 cursor:pointer，那会比下面的 button 选择器更具体、把圆盖掉。
    ============================================== */
@@ -64,11 +65,11 @@ html[data-theme="dark"]{
    不必退化成 round——包豪斯要的就是硬边。 */
 :root{
   --cur:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 3L21.6 14.4L12.6 16.2L9 25.2Z' fill='%23E1261C' stroke='%2316161A' stroke-width='2.2' stroke-linejoin='miter'/%3E%3C/svg%3E") 2 2, auto;
-  --cur-hit:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23E1261C' stroke='%2316161A' stroke-width='2.5'/%3E%3C/svg%3E") 14 14, pointer;
+  --cur-hit:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23E1261C' fill-opacity='0.3' stroke='%2316161A' stroke-width='2.5'/%3E%3C/svg%3E") 14 14, pointer;
 }
 html[data-theme="dark"]{
   --cur:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 3L21.6 14.4L12.6 16.2L9 25.2Z' fill='%23F2C230' stroke='%23121214' stroke-width='2.2' stroke-linejoin='miter'/%3E%3C/svg%3E") 2 2, auto;
-  --cur-hit:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23F2C230' stroke='%23121214' stroke-width='2.5'/%3E%3C/svg%3E") 14 14, pointer;
+  --cur-hit:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23F2C230' fill-opacity='0.3' stroke='%23F2C230' stroke-width='2.5'/%3E%3C/svg%3E") 14 14, pointer;
 }
 html{cursor:var(--cur)}
 a,button,summary,[role="button"]{cursor:var(--cur-hit)}
@@ -254,9 +255,42 @@ main section:nth-of-type(3n+1) .h2::before{background:var(--k2);border-radius:0 
 .about{font-size:16px;line-height:1.8;background:var(--about-bg);color:var(--about-fg)}
 html[data-theme="dark"] .about{border-left:6px solid var(--accent)}
 
-footer{margin-top:80px;border-top:var(--bd) solid var(--line);padding:24px 0}
-footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
-  font:600 12.5px var(--mono);color:var(--muted)}
+footer{margin-top:80px;border-top:var(--bd) solid var(--line);padding:22px 0}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;
+  flex-wrap:wrap;font:600 12.5px var(--mono);color:var(--muted)}
+
+/* ---- 页脚联系方式：只有图标，无边框无底色 ----
+   热区仍保留 34px（只是看不见），不然纯图标的点击目标太小 */
+.contacts{display:flex;gap:14px;list-style:none}
+.ico{display:grid;place-items:center;width:34px;height:34px;padding:0;
+  border:0;background:transparent;color:var(--muted);
+  transition:color .2s var(--ease),transform .2s var(--ease)}
+.ico svg{width:21px;height:21px;display:block}
+.ico:hover{color:var(--accent);transform:translateY(-2px)}
+.ico[aria-expanded="true"]{color:var(--accent)}
+
+/* 微信二维码浮层：从图标上方弹出。二维码必须深色模块 + 浅底才扫得动，
+   所以这块面板在深色主题下也强制白底，不跟随主题 */
+.qr-host{position:relative}
+.qr{position:absolute;bottom:calc(100% + 10px);right:0;z-index:45;
+  display:grid;justify-items:center;gap:8px;padding:12px;
+  background:#FFFFFF;border:var(--bd) solid var(--line);
+  opacity:0;visibility:hidden;transform:translateY(6px);
+  transition:opacity .18s var(--ease),transform .18s var(--ease),visibility .18s}
+/* 悬停打开；触屏上点一下同样会进入 :hover 态 */
+.qr-host:hover .qr{opacity:1;visibility:visible;transform:none}
+/* 键盘聚焦也要能打开，但必须用 :focus-visible 而不是 :focus-within——
+   后者对鼠标点击同样成立，点一下之后按钮留着焦点，面板就再也关不掉了。
+   单独成一条规则：万一浏览器不认 :has()，也只丢这条，不会连上面的 hover 一起失效。 */
+.qr-host:has(:focus-visible) .qr{opacity:1;visibility:visible;transform:none}
+/* 补上图标与面板之间那 10px 间隙的透明桥，否则鼠标移过去的半路会丢 hover */
+.qr::after{content:"";position:absolute;left:0;right:0;top:100%;height:12px}
+.qr-box{width:150px;height:150px;display:grid;place-items:center}
+.qr-box svg{display:block;width:100%;height:100%}
+.qr-fallback{font:600 11px var(--mono);color:#16161A;word-break:break-all;
+  height:auto;padding:6px;text-align:center}
+.qr a{color:var(--accent);font:700 12px var(--font);text-decoration:none;
+  border-bottom:2px solid currentColor}
 .note{font:600 15px var(--mono);color:var(--muted);border:var(--bd) dashed var(--line);
   padding:26px;text-align:center}
 #empty{display:none}
