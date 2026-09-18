@@ -5,5 +5,6 @@ _site/
 
 # 本地 gem 环境
 Gemfile.lock
-/vendor/        # 只忽略根目录下 bundler 的 vendor，别误伤 assets/js/vendor/
+# 只忽略根目录下 bundler 的 vendor，别误伤 assets/js/vendor/
+/vendor/
 .bundle/

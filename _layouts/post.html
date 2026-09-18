@@ -6,11 +6,15 @@ layout: default
   <div class="post-meta">
     {{ page.date | date: "%Y.%m.%d" }}{% if page.tags.size > 0 %} · {{ page.tags | join: " · " }}{% endif %}
   </div>
+  {%- comment -%}
+    目录由 JS 从 .prose 的 h2/h3 生成；标题少于两个就自己移除。
+    位置放在标题之后、正文之前：宽屏是 position:fixed 不吃文档流，顺序无关；
+    窄屏降级成 static 后就落在这里——先看到文章是什么，再看到目录。
+  {%- endcomment -%}
+  <nav class="toc" id="toc" aria-label="目录"></nav>
+
   <div class="prose">
     {{ content }}
   </div>
   <a class="post-back" href="{{ '/blog/' | relative_url }}"><i>←</i> <span data-en="Back to blog">返回博客</span></a>
 </article>
-
-{%- comment -%} 目录由 JS 从 .prose 的 h2/h3 生成；标题少于两个就自己移除 {%- endcomment -%}
-<nav class="toc" id="toc" aria-label="目录"></nav>
