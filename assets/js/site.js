@@ -87,6 +87,8 @@ const UI = {
   more:{zh:"+ 更多项目施工中",en:"+ More projects in progress"},
   repo:{zh:"查看仓库",en:"View repo"},
   search:{zh:"搜索项目 / 技能 / 奖项…",en:"Search projects / skills / awards…"},
+  searchPosts:{zh:"搜索文章标题 / 标签 / 正文…",en:"Search posts by title, tag or text…"},
+  findInPost:{zh:"在本文中查找…  ↵ 下一个",en:"Find in this article…  ↵ next"},
   langBtn:{zh:"EN",en:"中"},                                  /* 显示的是「切过去」的语言 */
   langTip:{zh:"Switch to English",en:"切换为中文"},
   themeTip:{zh:{light:"切换为深色",dark:"切换为浅色"},
@@ -110,8 +112,10 @@ const t = o => (o && typeof o === "object" && !Array.isArray(o)) ? o[lang] : o;
 const idx = (...xs) => esc(xs.flat(9)
   .map(x => (x && typeof x === "object") ? Object.values(x).join(" ") : x).join(" "));
 
-/* 首页才有简历内容；博客页这些节点不存在 */
+/* 按页面类型分流：首页筛简历、列表页筛文章、文章页文内查找 */
 const isHome = !!$("#grid");
+const prose  = $(".prose");
+const isPost = !!prose;
 
 /* ===================== 渲染 ===================== */
 function renderResume(){
@@ -169,7 +173,7 @@ function setLang(l){
     el.textContent = el.dataset[l];
   });
   const q = $("#q");
-  if(q) q.placeholder = t(UI.search);
+  if(q) q.placeholder = t(isPost ? UI.findInPost : isHome ? UI.search : UI.searchPosts);
   const lb = $("#lang");
   if(lb){ lb.textContent = t(UI.langBtn); lb.title = lb.ariaLabel = t(UI.langTip); }
   syncTheme();
@@ -192,20 +196,105 @@ function toggleTheme(){
 }
 
 /* ===================== 搜索 + 筛选 ===================== */
-/* 过滤所有带 data-s 的块，整段空了就折叠 */
+/* 过滤所有带 data-s 的块，整段空了就折叠。
+   首页筛简历卡片、列表页筛文章行，同一套代码。 */
 function filter(){
-  if(!isHome) return;
-  const q = $("#q") ? $("#q").value.trim().toLowerCase() : "";
-  $$("[data-s]").forEach(el=>{
+  const box = $("#q");
+  if(!box || isPost) return;
+  const q = box.value.trim().toLowerCase();
+  const all = [...$$("[data-s]")];
+  all.forEach(el=>{
     const okC = !el.dataset.cat || cat === "全部" || el.dataset.cat === cat;
     const okQ = !q || el.dataset.s.toLowerCase().includes(q);
     el.hidden = !(okC && okQ);
   });
   $$("main section").forEach(s=>{
-    const all = s.querySelectorAll("[data-s]");
-    s.hidden = all.length > 0 && ![...all].some(e=>!e.hidden);
+    const inner = s.querySelectorAll("[data-s]");
+    s.hidden = inner.length > 0 && ![...inner].some(e=>!e.hidden);
   });
-  $("#empty").style.display = (q && !$("#grid [data-s]:not([hidden])")) ? "block" : "none";
+  /* #empty 是 main 的直接子元素，不会被上面的折叠波及 */
+  $("#empty").style.display = (q && !all.some(e=>!e.hidden)) ? "block" : "none";
+}
+
+/* ===================== 文内查找 =====================
+   CSS Custom Highlight API：只给 Range 上色，不动 DOM，
+   所以反复搜索不会把正文结构搞坏。不支持的浏览器仍能计数和跳转，只是没底色。
+   ponytail: 只在单个文本节点内匹配，跨标签的词（如「前**端**」）搜不到；
+   真要跨标签就得先拼全文再映射回 Range，代价不值。
+   ============================================== */
+const CAN_HL = typeof Highlight !== "undefined" && window.CSS && CSS.highlights;
+let hits = [], cur = 0;
+
+function paintHits(){
+  const info = $("#qinfo"), box = $("#q");
+  if(info) info.textContent = (isPost && box && box.value.trim())
+    ? (hits.length ? `${cur + 1}/${hits.length}` : "0") : "⌕";
+  if(!CAN_HL) return;
+  CSS.highlights.delete("find"); CSS.highlights.delete("find-cur");
+  if(!hits.length) return;
+  CSS.highlights.set("find", new Highlight(...hits));
+  const one = new Highlight(hits[cur]);
+  one.priority = 1;                       /* 压住上面那层通用命中 */
+  CSS.highlights.set("find-cur", one);
+}
+
+function jumpTo(i){
+  if(!hits.length) return;
+  cur = (i + hits.length) % hits.length;
+  paintHits();
+  const r = hits[cur].getBoundingClientRect();
+  scrollBy({top: r.top - innerHeight * 0.32, behavior: MOTION ? "smooth" : "auto"});
+}
+
+function findInArticle(q){
+  hits = []; cur = 0;
+  if(q){
+    const w = document.createTreeWalker(prose, NodeFilter.SHOW_TEXT);
+    for(let n; (n = w.nextNode());){
+      const s = n.nodeValue.toLowerCase();
+      for(let i = s.indexOf(q); i !== -1; i = s.indexOf(q, i + q.length)){
+        const r = document.createRange();
+        r.setStart(n, i); r.setEnd(n, i + q.length);
+        hits.push(r);
+      }
+    }
+  }
+  paintHits();
+  if(hits.length) jumpTo(0);
+}
+
+/* ===================== 文章目录 ===================== */
+function buildToc(){
+  const el = $("#toc");
+  if(!el || !prose) return null;
+  const hs = [...prose.querySelectorAll("h2, h3")];
+  if(hs.length < 2){ el.remove(); return null; }   /* 一两个标题不值得做目录 */
+  el.innerHTML = "<ul>" + hs.map((h, i) => {
+    if(!h.id) h.id = "h-" + i;                     /* kramdown 一般会生成，这里兜底 */
+    /* 用 lv2/lv3 而不是 h2/h3：animate() 的 `main .h2` 会把目录项也当区块标题。
+       刻度在前、标签在后——面板向右滑出，露在屏幕内的是左边那一截。 */
+    return `<li class="lv${h.tagName[1]}">` +
+      `<a href="#${h.id}"><span class="tick"></span>` +
+      `<span class="label">${esc(h.textContent)}</span></a></li>`;
+  }).join("") + "</ul>";
+  return {hs, links: [...el.querySelectorAll("a")]};
+}
+const TOC = buildToc();
+
+/* 当前位置 = 最后一个顶边已经越过粘性顶栏的标题。
+   比 IntersectionObserver 更贴合「我正在读哪一节」的语义。 */
+function syncToc(){
+  if(!TOC) return;
+  const h = document.documentElement;
+  /* 触底特判：末尾几节往往比剩余视口还短，标题永远滚不到顶栏以上，
+     不特判的话读到最后一节时目录还高亮在倒数第三节上。 */
+  if(h.scrollTop + h.clientHeight >= h.scrollHeight - 4){
+    TOC.links.forEach((a, i) => a.classList.toggle("on", i === TOC.links.length - 1));
+    return;
+  }
+  let active = 0;
+  TOC.hs.forEach((x, i) => { if(x.getBoundingClientRect().top <= 120) active = i; });
+  TOC.links.forEach((a, i) => a.classList.toggle("on", i === active));
 }
 
 /* ===================== 动效 ===================== */
@@ -229,10 +318,11 @@ function animate(){
   firstPaint = false;
 }
 
-/* 顶部阅读进度线 */
+/* 顶部阅读进度线 + 目录跟随，共用一个滚动监听 */
 addEventListener("scroll", ()=>{
   const h = document.documentElement;
   $("#bar").style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100 || 0) + "%";
+  syncToc();
 }, {passive:true});
 
 /* 导航跟随当前区块高亮 */
@@ -254,7 +344,17 @@ const vt = fn => {
 /* ===================== 绑定 ===================== */
 $("#lang")?.addEventListener("click", ()=> vt(()=> setLang(lang === "zh" ? "en" : "zh")));
 $("#theme")?.addEventListener("click", ()=> vt(toggleTheme));
-$("#q")?.addEventListener("input", filter);   /* 打字要即时反馈，不加过渡 */
+/* 打字要即时反馈，不走 View Transitions */
+$("#q")?.addEventListener("input", ()=>{
+  const q = $("#q").value.trim().toLowerCase();
+  if(isPost) findInArticle(q); else filter();
+});
+/* 文章页：↵ 下一个，⇧↵ 上一个，Esc 清空 */
+$("#q")?.addEventListener("keydown", e=>{
+  if(!isPost) return;
+  if(e.key === "Enter"){ e.preventDefault(); jumpTo(cur + (e.shiftKey ? -1 : 1)); }
+  else if(e.key === "Escape"){ e.target.value = ""; findInArticle(""); }
+});
 $("#filters")?.addEventListener("click", e=>{
   const b = e.target.closest("button");
   if(!b || b.classList.contains("on")) return;
@@ -266,4 +366,5 @@ $("#filters")?.addEventListener("click", e=>{
 });
 
 setLang(lang);
-if(!isHome) animate();   /* 博客页没有简历内容，进入动画单独跑一次 */
+if(!isHome){ animate(); filter(); }   /* 简历外的页面：进入动画和筛选各跑一次 */
+syncToc();

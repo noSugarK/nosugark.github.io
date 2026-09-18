@@ -28,6 +28,8 @@
   --when-bg:var(--fg); --when-fg:var(--bg); --when-pad:6px 10px;
   --medal-bg:var(--bh-yellow); --medal-fg:var(--fg); --medal-bd:var(--line);
   --brand-bg:var(--bh-red); --brand-fg:#FFFFFF;
+  /* 文内查找：命中黄底，当前命中红底 */
+  --hl:#F5C400; --hl-fg:#16161A; --hl-cur:#E1261C; --hl-cur-fg:#FFFFFF;
 }
 
 /* ---- 深色：一个强调色，不再花哨 ---- */
@@ -45,6 +47,8 @@ html[data-theme="dark"]{
   --when-bg:transparent; --when-fg:var(--accent); --when-pad:0;
   --medal-bg:transparent; --medal-fg:var(--accent); --medal-bd:var(--accent);
   --brand-bg:var(--accent); --brand-fg:#121214;
+  /* 深色下强调色就是黄的，当前命中得跟普通命中区分开 */
+  --hl:#4A4520; --hl-fg:var(--fg); --hl-cur:var(--accent); --hl-cur-fg:#121214;
 }
 
 /* ===================== 基础 ===================== */
@@ -56,7 +60,7 @@ a{color:inherit}
 .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
 /* Bayer 的通用字母表主张废除大写：英文一律小写，中文不受影响。
    只作用于站点自己的文案——文章标题是作者写的，不能替他改大小写。 */
-.hero h1,.h2 span,.h2 em,nav a,.brand{text-transform:lowercase}
+.hero h1,.h2 span,.h2 em,.topbar nav a,.brand{text-transform:lowercase}
 
 /* ---- 顶栏 ---- */
 .topbar{position:sticky;top:0;z-index:50;background:var(--bg);
@@ -65,15 +69,16 @@ a{color:inherit}
 .brand{font:var(--track) 19px var(--head);letter-spacing:-.4px;
   background:var(--brand-bg);color:var(--brand-fg);padding:5px 11px;
   text-decoration:none;white-space:nowrap}
-nav{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
-nav::-webkit-scrollbar{display:none}
-nav a{position:relative;text-decoration:none;font-weight:600;font-size:14px;
+/* 必须限定在 .topbar 内：.toc 也是个 <nav>，按元素名写会把目录一起改掉 */
+.topbar nav{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+.topbar nav::-webkit-scrollbar{display:none}
+.topbar nav a{position:relative;text-decoration:none;font-weight:600;font-size:14px;
   padding:6px 11px;white-space:nowrap;border:var(--bd) solid transparent}
-nav a::after{content:"";position:absolute;left:11px;right:11px;bottom:2px;height:2px;
+.topbar nav a::after{content:"";position:absolute;left:11px;right:11px;bottom:2px;height:2px;
   background:var(--accent);transform:scaleX(0);transform-origin:left;
   transition:transform .28s var(--ease)}
-nav a:hover::after,nav a.on::after{transform:scaleX(1)}
-nav a:hover,nav a.on{color:var(--accent)}
+.topbar nav a:hover::after,.topbar nav a.on::after{transform:scaleX(1)}
+.topbar nav a:hover,.topbar nav a.on{color:var(--accent)}
 
 .search{display:flex;align-items:center;border:var(--bd) solid var(--line);background:var(--paper)}
 .search input{border:0;outline:0;padding:8px 12px;width:170px;background:transparent;
@@ -226,6 +231,45 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
 .post-back:hover i{transform:translateX(-6px)}
 .post-row h3 a{text-decoration:none}
 .post-row:hover h3 a{color:var(--accent)}
+.post-excerpt{margin-top:10px;color:var(--muted);font-size:15px}
+
+/* ---- 文内查找：CSS Custom Highlight API，不改 DOM ---- */
+::highlight(find){background:var(--hl);color:var(--hl-fg)}
+::highlight(find-cur){background:var(--hl-cur);color:var(--hl-cur-fg)}
+#qinfo{font:700 11px var(--mono);min-width:34px;padding:0 6px}
+
+/* ---- 文章目录：折叠成右侧一条刻度栏，hover / 键盘聚焦时整块滑出 ---- */
+.toc{
+  /* 折叠宽度：2 边框 + 16 内距 + 26 激活态刻度 = 44，再留 10 的边距 */
+  --rail:54px;
+  position:fixed;right:0;top:50%;width:252px;z-index:40;
+  padding:14px 0 12px;
+  background:var(--paper);border:var(--bd) solid var(--line);
+  max-height:76vh;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  /* 滑动整块面板，而不是给文字做 max-width 动画——后者逐帧触发布局，
+     而且过渡中文字会被截在半个字上 */
+  transform:translateY(-50%) translateX(calc(100% - var(--rail)));
+  transition:transform .34s var(--ease);
+}
+.toc::-webkit-scrollbar{display:none}
+.toc:hover,.toc:focus-within{transform:translateY(-50%) translateX(0)}
+/* 折叠态也露在外面的锚点方块，让这条栏看起来是个刻意做的东西而不是滚动条残影 */
+.toc::before{content:"";display:block;width:10px;height:10px;
+  background:var(--accent);margin:0 0 12px 16px}
+.toc ul{list-style:none}
+.toc a{display:flex;align-items:center;gap:14px;padding:6px 16px;
+  text-decoration:none;color:var(--muted);font:600 13px var(--font)}
+.toc a:hover{color:var(--fg);background:var(--bg)}
+/* 刻度右端对齐、左端按层级缩进：折叠状态下只看长短就能读出层级。
+   实心不透明——包豪斯不做半透明。 */
+.toc .tick{flex:none;width:20px;height:2px;background:var(--line);
+  transition:width .22s var(--ease),height .22s var(--ease),background .2s ease}
+.toc .lv3 .tick{width:11px;margin-left:9px}
+.toc .lv3 a{font-size:12px}
+.toc .label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toc a.on{color:var(--accent)}
+.toc a.on .tick{background:var(--accent);height:4px;width:26px}
+.toc .lv3 a.on .tick{width:17px}
 
 /* ===================== 动效 =====================
    全部原生 CSS / Web API，不引任何动画库。
@@ -252,6 +296,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
 }
 
 /* ===================== 响应式 ===================== */
+/* 正文最宽 72ch 居中在 1080 的容器里，再窄目录就会压到文字上；
+   而且触屏没有 hover，折叠态根本打不开，所以直接不要。 */
+@media(max-width:1240px){ .toc{display:none} }
+
 @media(max-width:900px){
   .hero{grid-template-columns:1fr;gap:28px;padding-top:40px}
   .tl .card{grid-template-columns:1fr;gap:10px}
@@ -265,7 +313,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
    简历是会被打印的，彩块和顶栏在纸上没有意义。
    ============================================== */
 @media print{
-  .topbar,footer,#bar,.filters,.proj.add{display:none}
+  .topbar,footer,#bar,.filters,.proj.add,.toc,#empty,.post-back{display:none}
   html[data-theme]{--bg:#FFF;--paper:#FFF;--fg:#000;--muted:#333;--line:#000;
     --accent:#000;--facts-bg:transparent;--about-bg:transparent;--about-fg:#000;
     --when-bg:transparent;--when-fg:#000;--when-pad:0;

@@ -11,16 +11,25 @@ permalink: /blog/
   {% if site.posts.size == 0 %}
     <p class="note" data-en="No posts yet.">还没有文章。</p>
   {% else %}
-  <div class="tl">
+  <div class="tl" id="post-list">
     {% for post in site.posts %}
-    <article class="card post-row">
+    {%- comment -%}
+      搜索目标：标题 + 标签 + 摘要 + 正文全文，直接塞进 data-s，
+      复用首页那套 filter()，不用再造一条搜索链路。
+      ponytail: 正文全文内联在列表页，文章多了这页会变重；
+      超过约 50 篇就改成 Liquid 生成 search.json + 输入时懒加载。
+    {%- endcomment -%}
+    {%- capture haystack -%}
+      {{ post.title }} {{ post.tags | join: " " }} {{ post.description }} {{ post.content | strip_html }}
+    {%- endcapture -%}
+    <article class="card post-row" data-s="{{ haystack | strip_newlines | escape }}">
       <div class="when">{{ post.date | date: "%Y.%m.%d" }}</div>
       <div>
         <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
         {% if post.tags.size > 0 %}
         <div class="stack">{% for tag in post.tags %}<i>{{ tag }}</i>{% endfor %}</div>
         {% endif %}
-        <p style="margin-top:10px;color:var(--muted);font-size:15px">
+        <p class="post-excerpt">
           {{ post.description | default: post.excerpt | strip_html | strip_newlines | truncate: 110 }}
         </p>
       </div>
