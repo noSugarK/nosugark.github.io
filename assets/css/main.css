@@ -267,7 +267,6 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
   transition:color .2s var(--ease),transform .2s var(--ease)}
 .ico svg{width:21px;height:21px;display:block}
 .ico:hover{color:var(--accent);transform:translateY(-2px)}
-.ico[aria-expanded="true"]{color:var(--accent)}
 
 /* 微信二维码浮层：从图标上方弹出。二维码必须深色模块 + 浅底才扫得动，
    所以这块面板在深色主题下也强制白底，不跟随主题 */
@@ -391,7 +390,26 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 /* ===================== 响应式 ===================== */
 /* 正文最宽 72ch 居中在 1080 的容器里，再窄目录就会压到文字上；
    而且触屏没有 hover，折叠态根本打不开，所以直接不要。 */
-@media(max-width:1240px){ .toc{display:none} }
+/* 窄屏放不下右侧浮层，触屏也没有 hover 可用——
+   降级成正文上方的静态块，而不是让目录整个消失。 */
+@media(max-width:1240px){
+  .toc{position:static;transform:none;width:auto;z-index:auto;
+    max-height:42vh;margin:34px 0 0;padding:14px 16px 12px;
+    opacity:1;visibility:visible;transition:none}
+  /* 必须连 :hover 一起压掉。媒体查询不增加特异性，
+     上面那条 .toc{transform:none}(0,1,0) 压不过基础的 .toc:hover(0,2,0)，
+     不写这行的话窄屏悬停会把整块按 translateY(-50%) 往上顶半个高度。 */
+  .toc:hover,.toc:focus-within{transform:none}
+  .toc::before{margin-left:0}
+  .toc::after{display:none}                /* 悬停用的透明桥不需要了 */
+  .toc .label{white-space:normal}          /* 允许标题折行，别截成省略号 */
+  .toc .tick{display:none}                 /* 静态块里刻度条失去指示作用 */
+  /* 当前项用常驻的左边框换色来标，不要改字重——字重一变文字宽度就变，
+     标题多折一行整块高度就跳，下面的正文跟着动。 */
+  .toc a{padding:5px 0 5px 11px;border-left:3px solid transparent}
+  .toc a.on{border-left-color:var(--accent)}
+  .toc .lv3 a{padding-left:27px}           /* 层级改用缩进表达 */
+}
 
 @media(max-width:900px){
   .hero{grid-template-columns:1fr;gap:28px;padding-top:40px}

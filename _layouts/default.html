@@ -64,7 +64,7 @@ try{
   {%- comment -%}
     GitHub / 邮箱是真链接。QQ 与微信没有桌面端能用的跳转协议，改成悬停出二维码：
     页面里只存一条链接（data-qr），码在浏览器现编码现画。
-    编码器是本地化的 MIT 库，挂到 ul 上让两个图标共用，首次悬停才注入 <script>。
+    编码器是本地化的 MIT 库，挂到 ul 上让两个图标共用，首次悬停才注入。
     手机上扫自己屏幕没意义，所以面板里同时给一条能直接点开的链接。
   {%- endcomment -%}
   <ul class="contacts" data-lib="{{ '/assets/js/vendor/qrcode.min.js' | relative_url }}">
