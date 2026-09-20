@@ -384,6 +384,65 @@ function syncToc(){
   TOC.links.forEach((a, i) => a.classList.toggle("on", i === active));
 }
 
+/* ===================== 代码块：语言角标 + 复制按钮 =====================
+   不引第三方高亮库。把每个 pre 包进 .codeblock，头部一条放语言名和复制按钮。
+   做成非滚动的头部而不是叠在 pre 上：pre 会横向滚动，绝对定位的按钮会跟着
+   滚没；头部留在滚动区外面才稳。 */
+function copyText(txt){
+  /* 旧 API：非安全上下文或 clipboard 被拒时兜底 */
+  const legacy = () => new Promise((res, rej) => {
+    const ta = document.createElement("textarea");
+    ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy") ? res() : rej(); }
+    catch(e){ rej(e); }
+    finally{ ta.remove(); }
+  });
+  if(navigator.clipboard?.writeText)
+    return navigator.clipboard.writeText(txt).catch(legacy);
+  return legacy();
+}
+
+function enhanceCode(){
+  if(!isPost) return;
+  $$(".prose pre").forEach(pre => {
+    const code = pre.querySelector("code");
+    /* 语言名：kramdown/Rouge 写成 class="language-yaml" 或 data-lang="yaml" */
+    const lang = (code && (code.dataset.lang ||
+      (code.className.match(/language-([\w-]+)/) || [])[1])) || "";
+
+    const wrap = document.createElement("div");
+    wrap.className = "codeblock";
+    pre.parentNode.insertBefore(wrap, pre);
+
+    const head = document.createElement("div");
+    head.className = "codeblock-head";
+    const tag = document.createElement("span");
+    tag.className = "lang";
+    tag.textContent = lang || "code";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "copy";
+    btn.dataset.zh = "复制"; btn.dataset.en = "Copy";
+    btn.textContent = t({zh:"复制", en:"Copy"});
+    btn.addEventListener("click", () => {
+      copyText((code || pre).innerText).then(() => {
+        btn.textContent = t({zh:"已复制", en:"Copied"});
+        btn.classList.add("done");
+        clearTimeout(btn._t);
+        btn._t = setTimeout(() => {
+          btn.textContent = t({zh:"复制", en:"Copy"});
+          btn.classList.remove("done");
+        }, 1600);
+      }).catch(() => { /* 两种 API 都被拒（少见）：不假装成功，静默即可 */ });
+    });
+
+    head.append(tag, btn);
+    wrap.append(head, pre);
+  });
+}
+
 /* ===================== 动效 ===================== */
 const MOTION = !matchMedia("(prefers-reduced-motion: reduce)").matches;
 let firstPaint = true;
@@ -512,3 +571,4 @@ $$(".qr-host").forEach(host => {
 setLang(lang);
 if(!isHome){ animate(); filter(); }   /* 简历外的页面：进入动画和筛选各跑一次 */
 syncToc();
+enhanceCode();

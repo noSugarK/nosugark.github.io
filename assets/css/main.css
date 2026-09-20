@@ -312,6 +312,21 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .prose pre{background:var(--paper);border:var(--bd) solid var(--line);padding:18px;
   overflow-x:auto}
 .prose pre code{border:0;padding:0;background:transparent;font-size:13.5px;line-height:1.7}
+/* JS 把 pre 包进 .codeblock，头部放语言名 + 复制按钮。
+   边框和底色上移到外壳，pre 自身清空，避免和 .prose pre 叠成两层框。
+   不设上边距：真实 kramdown 会把 pre 再套一层 .language-x 外层 div，
+   那层作为 .prose 直接子元素已带 .prose>*+* 间距，这里再加就翻倍。 */
+.codeblock{background:var(--paper);border:var(--bd) solid var(--line)}
+.codeblock-head{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:6px 8px 6px 14px;border-bottom:var(--bd) solid var(--line)}
+.codeblock .lang{font:700 11px var(--mono);letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--muted)}
+.codeblock .copy{font:700 11px var(--font);padding:3px 10px;
+  background:var(--bg);color:var(--fg);border:var(--bd) solid var(--line);
+  transition:border-color .2s ease,color .2s ease,background .2s ease}
+.codeblock .copy:hover{border-color:var(--accent);color:var(--accent)}
+.codeblock .copy.done{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.codeblock pre{margin:0;padding:16px 18px;border:0;background:transparent}
 .prose blockquote{border-left:8px solid var(--accent);padding-left:18px;color:var(--muted)}
 .prose img{max-width:100%;border:var(--bd) solid var(--line)}
 .prose table{width:100%;border-collapse:collapse;font-size:15px}
