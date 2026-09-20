@@ -136,7 +136,7 @@ html[data-theme="dark"] .half{transform:rotate(180deg)}
 .gh:hover{transform:translateY(-2px);opacity:.88}
 
 /* ---- 区块标题：几何标记按 圆→方→四分之一圆 / 蓝→红→黄 循环 ---- */
-section{padding:64px 0 0}
+main > section{padding:64px 0 0}
 .h2{position:relative;display:flex;flex-direction:column;gap:4px;width:fit-content;
   margin-bottom:28px;padding-left:42px}
 .h2 em{font:700 11px/1 var(--mono);color:var(--accent);font-style:normal;letter-spacing:2.5px;order:-1}
