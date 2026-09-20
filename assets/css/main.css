@@ -330,38 +330,26 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 ::highlight(find-cur){background:var(--hl-cur);color:var(--hl-cur-fg)}
 #qinfo{font:700 11px var(--mono);min-width:34px;padding:0 6px}
 
-/* ---- 文章目录：折叠成右侧一条刻度栏，hover / 键盘聚焦时整块滑出 ---- */
+/* ---- 文章目录 ----
+   默认（窄屏 / 平板，无 hover 或放不下右栏）：正文上方的静态块。
+   ≥1120px 由响应式区升级成正文右侧的粘性栏——那里本来就因 72ch 上限而空着。
+   两种形态都靠 a.on 的左边框标当前项；刻度条那套贴屏折叠轨道已废弃。 */
 .toc{
-  /* 折叠宽度：2 边框 + 16 内距 + 26 激活态刻度 = 44，再留 10 的边距 */
-  --rail:54px;
-  position:fixed;right:0;top:50%;width:252px;z-index:40;
-  padding:14px 0 12px;
+  margin:34px 0 0;
+  padding:14px 16px 12px;
   background:var(--paper);border:var(--bd) solid var(--line);
-  max-height:76vh;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
-  /* 滑动整块面板，而不是给文字做 max-width 动画——后者逐帧触发布局，
-     而且过渡中文字会被截在半个字上 */
-  transform:translateY(-50%) translateX(calc(100% - var(--rail)));
-  transition:transform .34s var(--ease);
+  max-height:42vh;overflow-y:auto;
 }
-.toc::-webkit-scrollbar{display:none}
-.toc:hover,.toc:focus-within{transform:translateY(-50%) translateX(0)}
-/* 折叠态也露在外面的锚点方块，让这条栏看起来是个刻意做的东西而不是滚动条残影 */
-.toc::before{content:"";display:block;width:10px;height:10px;
-  background:var(--accent);margin:0 0 12px 16px}
 .toc ul{list-style:none}
-.toc a{display:flex;align-items:center;gap:14px;padding:6px 16px;
+.toc a{display:flex;align-items:center;padding:5px 0 5px 11px;
+  border-left:3px solid transparent;
   text-decoration:none;color:var(--muted);font:600 13px var(--font)}
-.toc a:hover{color:var(--fg);background:var(--bg)}
-/* 刻度右端对齐、左端按层级缩进：折叠状态下只看长短就能读出层级。
-   实心不透明——包豪斯不做半透明。 */
-.toc .tick{flex:none;width:20px;height:2px;background:var(--line);
-  transition:width .22s var(--ease),height .22s var(--ease),background .2s ease}
-.toc .lv3 .tick{width:11px;margin-left:9px}
-.toc .lv3 a{font-size:12px}
-.toc .label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.toc a.on{color:var(--accent)}
-.toc a.on .tick{background:var(--accent);height:4px;width:26px}
-.toc .lv3 a.on .tick{width:17px}
+.toc a:hover{color:var(--fg)}
+.toc .tick{display:none}                 /* 静态块里刻度条没有指示作用 */
+.toc .label{white-space:normal}           /* 允许标题折行，别截成省略号 */
+/* 当前项用常驻左边框换色来标，不改字重——字重一变文字宽度就变，整块会跟着跳。 */
+.toc a.on{color:var(--accent);border-left-color:var(--accent)}
+.toc .lv3 a{padding-left:27px;font-size:12px}   /* 层级用缩进表达 */
 
 /* ===================== 动效 =====================
    全部原生 CSS / Web API，不引任何动画库。
@@ -388,27 +376,29 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 }
 
 /* ===================== 响应式 ===================== */
-/* 正文最宽 72ch 居中在 1080 的容器里，再窄目录就会压到文字上；
-   而且触屏没有 hover，折叠态根本打不开，所以直接不要。 */
-/* 窄屏放不下右侧浮层，触屏也没有 hover 可用——
-   降级成正文上方的静态块，而不是让目录整个消失。 */
-@media(max-width:1240px){
-  .toc{position:static;transform:none;width:auto;z-index:auto;
-    max-height:42vh;margin:34px 0 0;padding:14px 16px 12px;
-    opacity:1;visibility:visible;transition:none}
-  /* 必须连 :hover 一起压掉。媒体查询不增加特异性，
-     上面那条 .toc{transform:none}(0,1,0) 压不过基础的 .toc:hover(0,2,0)，
-     不写这行的话窄屏悬停会把整块按 translateY(-50%) 往上顶半个高度。 */
-  .toc:hover,.toc:focus-within{transform:none}
-  .toc::before{margin-left:0}
-  .toc::after{display:none}                /* 悬停用的透明桥不需要了 */
-  .toc .label{white-space:normal}          /* 允许标题折行，别截成省略号 */
-  .toc .tick{display:none}                 /* 静态块里刻度条失去指示作用 */
-  /* 当前项用常驻的左边框换色来标，不要改字重——字重一变文字宽度就变，
-     标题多折一行整块高度就跳，下面的正文跟着动。 */
-  .toc a{padding:5px 0 5px 11px;border-left:3px solid transparent}
-  .toc a.on{border-left-color:var(--accent)}
-  .toc .lv3 a{padding-left:27px}           /* 层级改用缩进表达 */
+/* 宽屏：正文仍是 72ch，右侧空出来的那一列放粘性目录。
+   top:88px 是为了让开 sticky 顶栏（约 66px）再留点呼吸。
+   用 :has(.toc) 只在真的有目录时才切两栏，短文章不会留一条空列。 */
+@media(min-width:1120px){
+  .post:has(.toc){
+    display:grid;
+    grid-template-columns:minmax(0,72ch) 230px;
+    grid-template-areas:"title side" "meta side" "prose side" "back side";
+    column-gap:48px;
+    max-width:none;
+    align-items:start;
+  }
+  .post:has(.toc) .post-title{grid-area:title}
+  .post:has(.toc) .post-meta{grid-area:meta}
+  .post:has(.toc) .prose{grid-area:prose}
+  .post:has(.toc) .post-back{grid-area:back}
+  .post:has(.toc) .toc{
+    grid-area:side;position:sticky;top:88px;
+    max-height:calc(100vh - 104px);overflow-y:auto;scrollbar-width:none;
+    width:auto;margin:0;padding:0;background:transparent;border:0;
+  }
+  .post:has(.toc) .toc::-webkit-scrollbar{display:none}
+  .post:has(.toc) .toc a:hover{background:transparent}
 }
 
 @media(max-width:900px){
