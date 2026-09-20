@@ -4,7 +4,7 @@ layout: default
 <article class="post">
   <h1 class="post-title">{{ page.title }}</h1>
   <div class="post-meta">
-    {{ page.date | date: "%Y.%m.%d" }}{% if page.tags.size > 0 %} · {{ page.tags | join: " · " }}{% endif %}
+    {{ page.date | date: "%Y.%m.%d" }}{% for tag in page.tags %} · <a href="{{ '/blog/' | relative_url }}?tag={{ tag | url_encode | downcase }}">{{ tag }}</a>{% endfor %}
   </div>
   {%- comment -%}
     目录由 JS 从 .prose 的 h2/h3 生成；标题少于两个就自己移除。

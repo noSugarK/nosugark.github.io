@@ -179,6 +179,8 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 
 let lang = store.get("lang") === "en" ? "en" : "zh";
 let cat = "全部";
+/* 列表页 ?tag= 参数：点文章标签跳过来时按标签精确过滤。空串=不过滤。 */
+const activeTag = (new URLSearchParams(location.search).get("tag") || "").toLowerCase();
 const t = o => (o && typeof o === "object" && !Array.isArray(o)) ? o[lang] : o;
 /* 搜索索引双语拼接，中英文都能搜到 */
 const idx = (...xs) => esc(xs.flat(9)
@@ -291,8 +293,9 @@ function filter(){
   const all = [...$$("[data-s]")];
   all.forEach(el=>{
     const okC = !el.dataset.cat || cat === "全部" || el.dataset.cat === cat;
+    const okT = !activeTag || (el.dataset.tags || "").toLowerCase().split(",").includes(activeTag);
     const okQ = !q || el.dataset.s.toLowerCase().includes(q);
-    el.hidden = !(okC && okQ);
+    el.hidden = !(okC && okT && okQ);
   });
   /* 整段空了就折叠。也作用于经历分组，否则筛掉全部条目后只剩一个光秃秃的组标题 */
   $$("main section, .tl-sec").forEach(s=>{
@@ -300,7 +303,19 @@ function filter(){
     s.hidden = inner.length > 0 && ![...inner].some(e=>!e.hidden);
   });
   /* #empty 是 main 的直接子元素，不会被上面的折叠波及 */
-  $("#empty").style.display = (q && !all.some(e=>!e.hidden)) ? "block" : "none";
+  $("#empty").style.display = ((q || activeTag) && !all.some(e=>!e.hidden)) ? "block" : "none";
+}
+
+/* 列表页顶部显示当前标签过滤 + 一个「清除」回到全部。
+   纯链接跳转，不造 SPA 状态；清除就是回到不带 ?tag= 的当前页。 */
+function initTagbar(){
+  const bar = $("#tagbar");
+  if(!bar || !activeTag) return;
+  const raw = new URLSearchParams(location.search).get("tag");
+  const lbl = lang === "en" ? "Tag" : "标签";
+  const clr = lang === "en" ? "clear ×" : "清除 ×";
+  bar.innerHTML = `${lbl} <b>${esc(raw)}</b> <a href="${esc(location.pathname)}">${clr}</a>`;
+  bar.hidden = false;
 }
 
 /* ===================== 文内查找 =====================
@@ -370,18 +385,35 @@ const TOC = buildToc();
 
 /* 当前位置 = 最后一个顶边已经越过粘性顶栏的标题。
    比 IntersectionObserver 更贴合「我正在读哪一节」的语义。 */
+let tocActive = -1;
 function syncToc(){
   if(!TOC) return;
   const h = document.documentElement;
+  let active = 0;
   /* 触底特判：末尾几节往往比剩余视口还短，标题永远滚不到顶栏以上，
      不特判的话读到最后一节时目录还高亮在倒数第三节上。 */
   if(h.scrollTop + h.clientHeight >= h.scrollHeight - 4){
-    TOC.links.forEach((a, i) => a.classList.toggle("on", i === TOC.links.length - 1));
-    return;
+    active = TOC.links.length - 1;
+  } else {
+    TOC.hs.forEach((x, i) => { if(x.getBoundingClientRect().top <= 120) active = i; });
   }
-  let active = 0;
-  TOC.hs.forEach((x, i) => { if(x.getBoundingClientRect().top <= 120) active = i; });
+  if(active === tocActive) return;   /* 小节没变就别动，省得每帧重排 */
+  tocActive = active;
   TOC.links.forEach((a, i) => a.classList.toggle("on", i === active));
+  keepTocVisible(TOC.links[active]);
+}
+
+/* 目录长过一屏时，只滚 .toc 这个容器把当前项留在视野里。
+   不能用 scrollIntoView——它会把整页一起跳到那一节。 */
+function keepTocVisible(el){
+  const box = el && el.closest(".toc");
+  if(!box || box.scrollHeight <= box.clientHeight + 1) return;
+  const br = box.getBoundingClientRect(), er = el.getBoundingClientRect();
+  const pad = 12;
+  let d = 0;
+  if(er.top < br.top + pad)            d = er.top - br.top - pad;
+  else if(er.bottom > br.bottom - pad) d = er.bottom - br.bottom + pad;
+  if(d) box.scrollBy({top: d, behavior: MOTION ? "smooth" : "auto"});
 }
 
 /* ===================== 代码块：语言角标 + 复制按钮 =====================
@@ -570,5 +602,6 @@ $$(".qr-host").forEach(host => {
 
 setLang(lang);
 if(!isHome){ animate(); filter(); }   /* 简历外的页面：进入动画和筛选各跑一次 */
+initTagbar();
 syncToc();
 enhanceCode();
