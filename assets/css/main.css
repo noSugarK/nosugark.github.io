@@ -307,6 +307,73 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
   padding:3px 10px;transition:border-color .2s ease,color .2s ease}
 .tagbar a:hover{border-color:var(--accent);color:var(--accent)}
 
+/* ===================== 博客列表：左侧时间轴 + 卡片 =====================
+   窄屏（默认）：时间轴是常驻左侧的窄日期轨——只画日期节点（年/月/日号），
+   不显示文章标题，整棵树摊开，点日期跳到对应卡片。
+   宽屏 ≥1120px：升级成可交互的 年→月→日 树（悬停展开、点击常驻、叶子带标题）。
+   展开动画统一用 grid-template-rows:0fr↔1fr，不写死 max-height。
+   注意：这里刻意不复用首页的 .tl / .timeline / .when，避免串味。 */
+
+/* 两栏骨架：窄屏也分栏，左轨按内容自适应宽度，右栏吃掉剩余 */
+.blog-layout{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:start}
+/* 时间轴常驻：粘在顶栏下方，超高就内部滚，藏掉滚动条 */
+.tl-side{display:block;position:sticky;top:80px;
+  max-height:calc(100vh - 96px);overflow-y:auto;scrollbar-width:none;padding-right:2px}
+.tl-side::-webkit-scrollbar{display:none}
+
+/* 树：每一级 .nd，标题 .nd-head，子级塞进 .nd-sub>ul */
+.tl-tree,.nd-sub>ul{list-style:none}
+.nd-head{display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  font:700 12.5px var(--mono);color:var(--muted);background:none;border:0;padding:5px 0;
+  transition:color .18s ease}
+.nd-head:hover{color:var(--fg)}
+.nd.on>.nd-head{color:var(--accent)}
+/* 几何节点沿用首页那套语言：年=方块、月=圆 */
+.nd-head::before{content:"";flex:none;width:11px;height:11px;
+  border:2px solid var(--line);background:var(--bg);transition:border-color .18s ease}
+[data-lv="yr"]>.nd-head::before{background:var(--k1);border-color:var(--k1)}
+[data-lv="mo"]>.nd-head::before{border-radius:50%;background:var(--k3);border-color:var(--k3)}
+.nd.on>.nd-head::before{border-color:var(--accent)}
+/* 窄屏日期轨：整棵摊开，不折叠 */
+.nd-sub{display:grid;grid-template-rows:1fr;transition:grid-template-rows .28s var(--ease)}
+.nd-sub>ul{overflow:hidden;min-height:0}
+/* 叶子=某一天的一篇文章。窄屏只留日号：标题字号归零，<b> 里的日号照常显示 */
+.nd-leaf{display:block;margin-left:5px;padding:4px 0 4px 20px;
+  border-left:2px solid var(--line);
+  font:600 12px var(--font);color:var(--muted);text-decoration:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:color .15s ease,border-color .15s ease}
+.nd-leaf b{font:700 11px var(--mono);color:var(--fg);margin-right:8px}
+.nd-leaf:hover,.nd-leaf.on{color:var(--accent);border-left-color:var(--accent)}
+.nd-leaf.on b{color:var(--accent)}
+.nd-leaf{font-size:0}
+.nd-leaf b{font-size:11px;margin-right:0}
+
+/* 右栏分组列表 */
+.tl-list{display:grid;gap:16px}
+.yr,.mo,.post-row{scroll-margin-top:104px}
+.mo{display:grid;gap:16px}
+.yr+.yr .yr-head,.yr .mo:first-child .mo-head{margin-top:0}
+.yr-head{display:flex;align-items:center;gap:12px;margin:28px 0 2px;
+  font:var(--track) clamp(26px,4vw,34px)/1 var(--head);letter-spacing:-1px;color:var(--fg)}
+.yr:first-child .yr-head{margin-top:0}
+.yr-head::before{content:"";flex:none;width:16px;height:16px;background:var(--k1)}
+.mo-head{display:flex;align-items:baseline;gap:6px;margin-top:6px;
+  font:700 13px var(--mono);letter-spacing:1px;color:var(--accent)}
+.mo-head em{font-style:normal;font-weight:600;color:var(--muted)}
+
+/* 卡片：单栏，标题 → 日期/标签行 → 摘要 */
+.post-row{display:block;background:var(--paper);border:var(--bd) solid var(--line);
+  padding:18px 20px;transition:transform .2s var(--ease),border-color .2s ease}
+.post-row:hover{transform:translateY(-3px);border-color:var(--accent)}
+.post-h{font:var(--track) 19px/1.25 var(--head);letter-spacing:-.4px}
+.post-h a{text-decoration:none;color:inherit}
+.post-row:hover .post-h a{color:var(--accent)}
+.post-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:9px;
+  font:600 12px var(--mono);color:var(--muted)}
+.post-line .stack{margin-left:auto}
+.post-excerpt{margin-top:12px;color:var(--muted);font-size:15px;line-height:1.6}
+
 /* ---- 文章 ---- */
 .post{max-width:72ch;padding-top:56px}
 .post-title{font:var(--track) clamp(30px,5vw,46px)/1.1 var(--head);letter-spacing:-1.5px}
@@ -352,9 +419,6 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
   text-decoration:none;color:var(--accent)}
 .post-back i{display:inline-block;font-style:normal;transition:transform .28s var(--ease)}
 .post-back:hover i{transform:translateX(-6px)}
-.post-row h3 a{text-decoration:none}
-.post-row:hover h3 a{color:var(--accent)}
-.post-excerpt{margin-top:10px;color:var(--muted);font-size:15px}
 
 /* ---- 文内查找：CSS Custom Highlight API，不改 DOM ---- */
 ::highlight(find){background:var(--hl);color:var(--hl-fg)}
@@ -434,13 +498,27 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
   .post:has(.toc) .toc a:hover{background:transparent}
 }
 
+/* 博客列表：宽屏把窄日期轨升级成可交互的完整树——恢复折叠 + 叶子标题 */
+@media(min-width:1120px){
+  .blog-layout{grid-template-columns:212px minmax(0,1fr);gap:48px}
+  .tl-side{top:88px;max-height:calc(100vh - 104px)}
+  /* 子级默认折叠，点击常驻 .open、滚动经过 .cur、桌面 hover 即开 */
+  .nd-sub{grid-template-rows:0fr}
+  .nd.open>.nd-sub,.nd.cur>.nd-sub{grid-template-rows:1fr}
+  @media(hover:hover){ .tl-side .nd:hover>.nd-sub{grid-template-rows:1fr} }
+  /* 恢复叶子标题：字号回正，日号与标题之间留间距 */
+  .nd-leaf{font-size:12px}
+  .nd-leaf b{margin-right:8px}
+}
+
 @media(max-width:900px){
   .hero{grid-template-columns:1fr;gap:28px;padding-top:40px}
   .tl .card{grid-template-columns:1fr;gap:10px}
   .timeline{--off:20px; --node:12px}   /* 窄屏收窄竖轴，别再吃正文宽度 */
   .search{order:4;flex:1 1 100%}
   .search input{width:100%}
-  nav{order:5;flex:1 1 100%}
+  /* 只作用于顶栏导航：裸 nav 会连带命中博客列表的 <nav class="tl-side">，把时间轴挤到右边 */
+  .topbar nav{order:5;flex:1 1 100%}
   .facts::before{right:-12px;top:-12px;width:46px;height:46px}
 }
 
@@ -448,7 +526,7 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
    简历是会被打印的，彩块和顶栏在纸上没有意义。
    ============================================== */
 @media print{
-  .topbar,footer,#bar,.filters,.proj.add,.toc,#empty,.post-back{display:none}
+  .topbar,footer,#bar,.filters,.proj.add,.toc,.tl-side,#empty,.post-back{display:none}
   html[data-theme]{--bg:#FFF;--paper:#FFF;--fg:#000;--muted:#333;--line:#000;
     --accent:#000;--facts-bg:transparent;--about-bg:transparent;--about-fg:#000;
     --when-bg:transparent;--when-fg:#000;--when-pad:0;

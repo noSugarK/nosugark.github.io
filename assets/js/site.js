@@ -190,6 +190,7 @@ const idx = (...xs) => esc(xs.flat(9)
 const isHome = !!$("#grid");
 const prose  = $(".prose");
 const isPost = !!prose;
+const isList = !!$("#post-list");   /* 博客列表页：只有它有左侧时间轴 */
 
 /* ===================== 渲染 ===================== */
 function renderResume(){
@@ -297,11 +298,13 @@ function filter(){
     const okQ = !q || el.dataset.s.toLowerCase().includes(q);
     el.hidden = !(okC && okT && okQ);
   });
-  /* 整段空了就折叠。也作用于经历分组，否则筛掉全部条目后只剩一个光秃秃的组标题 */
-  $$("main section, .tl-sec").forEach(s=>{
+  /* 整段空了就折叠。也作用于经历分组，否则筛掉全部条目后只剩一个光秃秃的组标题。
+     .mo 是博客列表的月份分组（div，不在 section 那批里），单独并进来。 */
+  $$("main section, .tl-sec, .mo").forEach(s=>{
     const inner = s.querySelectorAll("[data-s]");
     s.hidden = inner.length > 0 && ![...inner].some(e=>!e.hidden);
   });
+  tlVisibility();
   /* #empty 是 main 的直接子元素，不会被上面的折叠波及 */
   $("#empty").style.display = ((q || activeTag) && !all.some(e=>!e.hidden)) ? "block" : "none";
 }
@@ -475,6 +478,85 @@ function enhanceCode(){
   });
 }
 
+/* ===================== 博客列表左侧时间轴 =====================
+   扫描已渲染的 .yr / .mo / .post-row，现建「年 → 月 → 日号」三级树。
+   只出现有文章的年/月/日；日号叶子锚到对应卡片，点一下原生滚动过去。
+   展开：桌面 hover 即开（CSS），点标题 .open 常驻；滚动经过的分支加 .cur 自动摊开。 */
+function buildTimeline(){
+  const side = $("#tl-side");
+  if(!side || !isList) return;
+  const yrs = [...document.querySelectorAll(".tl-list .yr")];
+  if(!yrs.length){ side.remove(); return; }
+  const n = s => parseInt(s, 10) || s;   /* 去年份/月份/日号的前导零 */
+  side.innerHTML = '<ul class="tl-tree">' + yrs.map(yr=>{
+    const mos = [...yr.querySelectorAll(":scope > .mo")].map(mo=>{
+      const leaves = [...mo.querySelectorAll(".post-row")].map(c=>{
+        const day = (c.dataset.date || "").split("-")[2] || "";
+        const a = c.querySelector(".post-h a");
+        const title = a ? a.textContent.trim() : "";
+        return `<li><a class="nd-leaf" href="#${c.id}" data-for="${c.id}"
+          title="${esc(title)}"><b>${n(day)}</b>${esc(title)}</a></li>`;
+      }).join("");
+      return `<li class="nd" data-lv="mo" data-for="${mo.id}">
+        <button class="nd-head" type="button">${n((mo.dataset.month||"").split("-")[1])}</button>
+        <div class="nd-sub"><ul>${leaves}</ul></div></li>`;
+    }).join("");
+    return `<li class="nd" data-lv="yr" data-for="${yr.id}">
+      <button class="nd-head" type="button">${yr.dataset.year}</button>
+      <div class="nd-sub"><ul>${mos}</ul></div></li>`;
+  }).join("") + "</ul>";
+
+  /* 点标题：常驻展开 / 收起（窄屏整棵常驻摊开，这条只在宽屏有意义） */
+  side.addEventListener("click", e=>{
+    const head = e.target.closest(".nd-head");
+    if(head) head.closest(".nd").classList.toggle("open");
+  });
+}
+
+/* 搜索 / 标签过滤后，时间轴里对应分组没剩文章就一起藏掉，避免留下点了没反应的节点 */
+function tlVisibility(){
+  const side = $("#tl-side");
+  if(!side) return;
+  side.querySelectorAll(".nd").forEach(nd=>{
+    const grp = document.getElementById(nd.dataset.for);
+    nd.hidden = !grp || ![...grp.querySelectorAll(".post-row")].some(c=>!c.hidden);
+  });
+}
+
+/* 当前位置 = 顶边越过顶栏的最后一张卡片；高亮其 年/月/日 分支并展开 */
+let tlActive = "";
+function syncTimeline(){
+  const side = $("#tl-side");
+  if(!side) return;
+  const cards = [...document.querySelectorAll(".post-row:not([hidden])")];
+  let cur = null;
+  /* 顶栏约 66px + scroll-margin 104，取卡片顶边越过 ~170 这条线才算「读到了」 */
+  for(const c of cards){ if(c.getBoundingClientRect().top <= 170) cur = c; }
+  if(!cur) cur = cards[0];
+  if(!cur || cur.id === tlActive) return;
+  tlActive = cur.id;
+  side.querySelectorAll(".on,.cur").forEach(e=>e.classList.remove("on", "cur"));
+  const leaf = side.querySelector('.nd-leaf[data-for="' + cur.id + '"]');
+  if(!leaf) return;
+  leaf.classList.add("on");
+  const mo = leaf.closest(".nd[data-lv=mo]"), yr = leaf.closest(".nd[data-lv=yr]");
+  mo?.classList.add("on", "cur");
+  yr?.classList.add("cur");
+  keepTlVisible(leaf);
+}
+
+/* 时间轴长过一屏时只滚容器把当前项留住，不用 scrollIntoView（它会连整页一起跳） */
+function keepTlVisible(el){
+  const box = el && el.closest(".tl-side");
+  if(!box || box.scrollHeight <= box.clientHeight + 1) return;
+  const br = box.getBoundingClientRect(), er = el.getBoundingClientRect();
+  const pad = 12;
+  let d = 0;
+  if(er.top < br.top + pad)            d = er.top - br.top - pad;
+  else if(er.bottom > br.bottom - pad) d = er.bottom - br.bottom + pad;
+  if(d) box.scrollBy({top: d, behavior: MOTION ? "smooth" : "auto"});
+}
+
 /* ===================== 动效 ===================== */
 const MOTION = !matchMedia("(prefers-reduced-motion: reduce)").matches;
 let firstPaint = true;
@@ -501,6 +583,7 @@ addEventListener("scroll", ()=>{
   const h = document.documentElement;
   $("#bar").style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100 || 0) + "%";
   syncToc();
+  syncTimeline();
 }, {passive:true});
 
 /* 导航跟随当前区块高亮 */
@@ -601,7 +684,10 @@ $$(".qr-host").forEach(host => {
 });
 
 setLang(lang);
-if(!isHome){ animate(); filter(); }   /* 简历外的页面：进入动画和筛选各跑一次 */
+if(!isHome){ animate(); }
+buildTimeline();          /* 列表页：现建时间轴，之后的 filter 才能同步它的显隐 */
+if(!isHome){ filter(); }   /* 简历外的页面：筛选跑一次 */
 initTagbar();
 syncToc();
+syncTimeline();
 enhanceCode();
