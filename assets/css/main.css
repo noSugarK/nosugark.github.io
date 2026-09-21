@@ -28,6 +28,10 @@
   --when-bg:var(--fg); --when-fg:var(--bg); --when-pad:6px 10px;
   --medal-bg:var(--bh-yellow); --medal-fg:var(--fg); --medal-bd:var(--line);
   --brand-bg:var(--bh-red); --brand-fg:#FFFFFF;
+  /* 提示块（callout）：竖条 / 标签 / 底色淡化共用一个色，
+     不直接用三原色——黄色做文字对比度不够，统一压到可读的深色版 */
+  --c-note:#1B4D9E; --c-tip:#1F7A43; --c-imp:#6B3FA0; --c-warn:#9A6B00; --c-caution:#C41E14;
+
   /* 文内查找：命中黄底，当前命中红底 */
   --hl:#F5C400; --hl-fg:#16161A; --hl-cur:#E1261C; --hl-cur-fg:#FFFFFF;
 }
@@ -47,6 +51,9 @@ html[data-theme="dark"]{
   --when-bg:transparent; --when-fg:var(--accent); --when-pad:0;
   --medal-bg:transparent; --medal-fg:var(--accent); --medal-bd:var(--accent);
   --brand-bg:var(--accent); --brand-fg:#121214;
+  /* 提示块保留各自色相：warning 和 note 的区别是语义，不能像装饰色那样收敛成一个强调色，
+     只把亮度提上来压在 #121214 上 */
+  --c-note:#6C9BEA; --c-tip:#4FBF7E; --c-imp:#B48BE8; --c-warn:#E0AE2B; --c-caution:#FF6E60;
   /* 深色下强调色就是黄的，当前命中得跟普通命中区分开 */
   --hl:#4A4520; --hl-fg:var(--fg); --hl-cur:var(--accent); --hl-cur-fg:#121214;
 }
@@ -417,7 +424,24 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
    多彩图表颜色会走形，真需要精确配色再改成监听 data-theme 重跑 mermaid.run。 */
 .prose pre.mermaid{border:0;background:transparent;padding:0;text-align:center;line-height:normal}
 [data-theme="dark"] .prose pre.mermaid{filter:invert(1) hue-rotate(180deg)}
-.prose blockquote{border-left:8px solid var(--accent);padding-left:18px;color:var(--muted)}
+/* 引用块：细灰竖条 + 灰字小一号。
+   原来是 8px 强调色粗杠，和 .prose h2 的竖杠一模一样，扫一眼分不出是引用还是标题。 */
+.prose blockquote{border-left:3px solid var(--line);padding-left:16px;
+  color:var(--muted);font-size:.93em}
+.prose blockquote>*+*{margin-top:.8em}
+/* GitHub 的 > [!NOTE] 语法 kramdown 不认，由 site.js 摘掉首行标记后打上 .callout。
+   竖条 / 标签 / 淡底共用 --cl，换类型只换这一个变量。
+   类型写在 data-callout 上而不是类名里：note / tip 这种词太通用，
+   .note 已经被空状态框占着了。 */
+.prose .callout{--cl:var(--c-note);
+  border-left:6px solid var(--cl);padding:14px 16px;
+  background:color-mix(in srgb,var(--cl) 8%,transparent);
+  color:var(--fg);font-size:.95em}
+.prose .callout[data-callout=tip]{--cl:var(--c-tip)}
+.prose .callout[data-callout=important]{--cl:var(--c-imp)}
+.prose .callout[data-callout=warning]{--cl:var(--c-warn)}
+.prose .callout[data-callout=caution]{--cl:var(--c-caution)}
+.callout-label{display:block;font:700 12px var(--mono);letter-spacing:1.4px;color:var(--cl)}
 .prose img{max-width:100%;border:var(--bd) solid var(--line)}
 /* 图片独占一段时 JS 把外层 <p> 换成 <figure>，alt 直接当图注 */
 .prose figure img{display:block;margin-inline:auto}   /* display:block 自己不会居中，靠 auto 边距 */

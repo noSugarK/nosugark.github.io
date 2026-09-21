@@ -744,6 +744,24 @@ syncToc();
 syncTimeline();
 enhanceCode();
 
+/* 提示块：GitHub 的 > [!NOTE] 语法 kramdown 不认，原样留在 <blockquote> 第一段开头。
+   在这儿把标记摘掉换成 .callout + 一行标签，样式全交给 CSS。 */
+const CALLOUT = { note:"NOTE", tip:"TIP", important:"IMPORTANT", warning:"WARNING", caution:"CAUTION" };
+if(isPost) $$(".prose blockquote").forEach(bq => {
+  const p1 = bq.firstElementChild, txt = p1 && p1.firstChild;
+  if(!txt || txt.nodeType !== 3) return;          /* 首段不是以纯文本开头，不是提示块 */
+  const m = txt.data.match(/^\s*\[!(\w+)\]\s*\n?/);
+  const type = m && m[1].toLowerCase();
+  if(!CALLOUT[type]) return;
+  txt.data = txt.data.slice(m[0].length);
+  const label = document.createElement("b");
+  label.className = "callout-label";
+  label.textContent = CALLOUT[type];
+  bq.prepend(label);
+  bq.className = "callout";
+  bq.dataset.callout = type;
+});
+
 /* 正文图片：懒加载 + 异步解码，顺带把 alt 兜成图注。markdown 语法带不了属性，只能在这儿补。 */
 if(isPost) $$(".prose img").forEach(im => {
   im.loading = "lazy"; im.decoding = "async";
