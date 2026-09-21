@@ -428,11 +428,13 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
    原来是 8px 强调色粗杠，和 .prose h2 的竖杠一模一样，扫一眼分不出是引用还是标题。 */
 .prose blockquote{border-left:3px solid var(--line);padding-left:16px;
   color:var(--muted);font-size:.93em}
-.prose blockquote>*+*{margin-top:.8em}
+.prose blockquote>*+*,.prose .callout details>*+*{margin-top:.8em}
 /* GitHub 的 > [!NOTE] 语法 kramdown 不认，由 site.js 摘掉首行标记后打上 .callout。
-   竖条 / 标签 / 淡底共用 --cl，换类型只换这一个变量。
+   竖条 / 标签 / 图标 / 淡底共用 --cl，换类型只换这一个变量。
    类型写在 data-callout 上而不是类名里：note / tip 这种词太通用，
-   .note 已经被空状态框占着了。 */
+   .note 已经被空状态框占着了。
+   自定义类型（> [!XXX]）直接可用，走默认色和方块图标；
+   要给它专属配色，在下面照抄一行就行，JS 不用动。 */
 .prose .callout{--cl:var(--c-note);
   border-left:6px solid var(--cl);padding:14px 16px;
   background:color-mix(in srgb,var(--cl) 8%,transparent);
@@ -441,7 +443,19 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .prose .callout[data-callout=important]{--cl:var(--c-imp)}
 .prose .callout[data-callout=warning]{--cl:var(--c-warn)}
 .prose .callout[data-callout=caution]{--cl:var(--c-caution)}
-.callout-label{display:block;font:700 12px var(--mono);letter-spacing:1.4px;color:var(--cl)}
+.callout-label{display:flex;align-items:center;gap:7px;
+  font:700 12px var(--mono);letter-spacing:1.4px;text-transform:uppercase;color:var(--cl)}
+/* 图标只给线条，颜色靠 currentColor 跟着 --cl 走，深浅色不用各画一套 */
+.callout-label svg{flex:none;width:15px;height:15px;
+  fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+/* 折叠式：> [!NOTE]- 默认收起，> [!NOTE]+ 默认展开。
+   summary 自带的三角各浏览器画得不一样，关掉换成右侧自己的箭头。 */
+.callout details>summary{cursor:pointer;list-style:none}
+.callout details>summary::-webkit-details-marker{display:none}
+.callout details>summary::after{content:"";flex:none;margin-left:auto;width:6px;height:6px;
+  border-right:2px solid currentColor;border-bottom:2px solid currentColor;
+  transform:translateY(-2px) rotate(-45deg);transition:transform .2s var(--ease)}
+.callout details[open]>summary::after{transform:translateY(-1px) rotate(45deg)}
 .prose img{max-width:100%;border:var(--bd) solid var(--line)}
 /* 图片独占一段时 JS 把外层 <p> 换成 <figure>，alt 直接当图注 */
 .prose figure img{display:block;margin-inline:auto}   /* display:block 自己不会居中，靠 auto 边距 */

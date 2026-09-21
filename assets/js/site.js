@@ -745,21 +745,40 @@ syncTimeline();
 enhanceCode();
 
 /* 提示块：GitHub 的 > [!NOTE] 语法 kramdown 不认，原样留在 <blockquote> 第一段开头。
-   在这儿把标记摘掉换成 .callout + 一行标签，样式全交给 CSS。 */
-const CALLOUT = { note:"NOTE", tip:"TIP", important:"IMPORTANT", warning:"WARNING", caution:"CAUTION" };
+   在这儿把标记摘掉、补图标和标签、打上 .callout + data-callout，配色全在 CSS 里。
+   - 类型不设白名单：> [!XXX] 也认，走默认色 + 方块图标，
+     要专属配色在 main.css 里加一条 [data-callout=xxx] 就行，这里不用动。
+   - 标记后跟 - 或 + 则折叠：- 默认收起，+ 默认展开，用原生 <details>。
+   图标都画在 16×16 网格上，只给路径，描边颜色 CSS 用 currentColor 接。 */
+const ICON = {
+  note:      '<circle cx="8" cy="8" r="7"/><path d="M8 7.2v4.6M8 4.2v1"/>',
+  tip:       '<path d="M5.4 9.6a4 4 0 1 1 5.2 0c-.6.5-.9 1-.9 1.7v.6H6.3v-.6c0-.7-.3-1.2-.9-1.7z"/><path d="M6.4 14h3.2"/>',
+  important: '<rect x="1.4" y="1.4" width="13.2" height="13.2"/><path d="M8 4.2v4.8M8 11.2v1"/>',
+  warning:   '<path d="M8 1.6 15.2 14H.8z"/><path d="M8 6.2v3.4M8 11.6v1"/>',
+  caution:   '<circle cx="8" cy="8" r="7"/><path d="m5.5 5.5 5 5M10.5 5.5l-5 5"/>',
+  _:         '<rect x="2.5" y="2.5" width="11" height="11"/>'   /* 自定义类型的兜底 */
+};
+
 if(isPost) $$(".prose blockquote").forEach(bq => {
   const p1 = bq.firstElementChild, txt = p1 && p1.firstChild;
   if(!txt || txt.nodeType !== 3) return;          /* 首段不是以纯文本开头，不是提示块 */
-  const m = txt.data.match(/^\s*\[!(\w+)\]\s*\n?/);
-  const type = m && m[1].toLowerCase();
-  if(!CALLOUT[type]) return;
+  const m = txt.data.match(/^\s*\[!([\w-]+)\]([-+]?)\s*\n?/);
+  if(!m) return;
+  const type = m[1].toLowerCase(), fold = m[2];
   txt.data = txt.data.slice(m[0].length);
-  const label = document.createElement("b");
-  label.className = "callout-label";
-  label.textContent = CALLOUT[type];
-  bq.prepend(label);
   bq.className = "callout";
   bq.dataset.callout = type;
+
+  const head = document.createElement(fold ? "summary" : "b");
+  head.className = "callout-label";
+  head.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true">' +
+    (ICON[type] || ICON._) + "</svg>" + esc(type);
+  if(!fold){ bq.prepend(head); return; }
+
+  const d = document.createElement("details");
+  d.open = fold === "+";
+  d.append(head, ...bq.childNodes);   /* 展开式取静态快照，再把正文整体搬进 details */
+  bq.append(d);
 });
 
 /* 正文图片：懒加载 + 异步解码，顺带把 alt 兜成图注。markdown 语法带不了属性，只能在这儿补。 */
