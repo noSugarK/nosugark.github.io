@@ -198,7 +198,9 @@ const isList = !!$("#post-list");   /* 博客列表页：只有它有左侧时�
 function renderResume(){
   if(!isHome) return;
 
-  $("#tags").innerHTML = TAGS.map(x=>`<span class="tag">${esc(t(x))}</span>`).join("");
+  /* --d 是入场时的逐枚延迟；只有 <html class="boot"> 在时 CSS 才会用它 */
+  $("#tags").innerHTML = TAGS.map((x,i)=>
+    `<span class="tag" style="--d:${(.72 + i * .07).toFixed(2)}s">${esc(t(x))}</span>`).join("");
   $("#bio").textContent = t(BIO);
   $("#facts").innerHTML = FACTS.map(([k,v])=>`<dt>${esc(t(k))}</dt><dd>${esc(t(v))}</dd>`).join("");
 
@@ -634,9 +636,18 @@ const heroName = $(".hero h1 b");
 if(heroName && MOTION) heroName.replaceChildren(...[...heroName.textContent].map((c, i) => {
   const s = document.createElement("span");
   s.textContent = c;
-  s.style.setProperty("--d", i * 55 + 120 + "ms");
+  s.style.setProperty("--d", i * 45 + 260 + "ms");
+  /* 大字状态的歪斜量。三个固定算式而不是 Math.random()：
+     每次刷新姿态一致，随机会让人以为是渲染出错。 */
+  s.style.setProperty("--r", (((i * 37) % 11 - 5) * 1.8 + (i % 2 ? 1.6 : -1.6)).toFixed(1) + "deg");
+  s.style.setProperty("--x", (((i * 17) % 7 - 3) * .012).toFixed(3) + "em");
+  s.style.setProperty("--y", (((i * 53) % 9 - 4) * .016).toFixed(3) + "em");
   return s;
 }));
+
+/* 入场序列（最后一枚标签 ~1.5s 落定）跑完就摘掉门控类：
+   之后切语言重建的节点不会再播一遍入场。等动画结束再摘，中途摘会把它们掐断。 */
+setTimeout(()=> document.documentElement.classList.remove("boot"), 2400);
 
 /* 导航跟随当前区块高亮 */
 const spy = new IntersectionObserver(es => es.forEach(e => {

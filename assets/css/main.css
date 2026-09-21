@@ -159,14 +159,45 @@ main section:nth-of-type(3n+1) .h2::before{background:var(--k2);border-radius:0 
 .card:hover{border-color:var(--accent)}
 
 /* ---- Hero ---- */
-.hero{display:grid;grid-template-columns:1.55fr 1fr;gap:40px;padding-top:64px;align-items:start}
+.hero{display:grid;grid-template-columns:1.55fr 1fr;gap:40px;padding-top:64px;align-items:start;
+  position:relative;isolation:isolate}
+/* 退化形态下这层不生成盒子，两栏就是 .hero 的直接网格项 */
+.stage{display:contents}
+/* 几何装饰垫在内容之下：isolation 把 z-index:-1 关在 .hero 里，
+   否则它会沉到 body 背景后面直接看不见 */
+.hero-art{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.hero-art i{position:absolute;display:block;border:2px solid var(--line);
+  animation:shape-in .8s var(--ease) both var(--d,0s)}
+/* --pk = 滚动视差下沉量，三块速率不同才有纵深 */
+.hero-art i:nth-child(1){left:-126px;top:-12px;width:92px;height:92px;border-radius:50%;
+  background:var(--k3);--pk:86px}
+.hero-art i:nth-child(2){right:-140px;top:118px;width:106px;height:106px;
+  border-radius:0 0 0 100%;background:var(--k2);--d:.12s;--pk:50px}
+.hero-art i:nth-child(3){left:-100px;bottom:-26px;width:54px;height:54px;
+  background:var(--k1);--d:.24s;--pk:124px}
+/* 深色跟技能标签、信息块一个处理：去掉实心填充只留几何轮廓，
+   否则三块大实色会把「收敛成单一强调色」的调子压垮 */
+html[data-theme="dark"] .hero-art i{background:transparent;border-color:var(--accent)}
+
+/* 下滑提示：一条竖线，方块沿线往下走。transform-origin 配合 scale 属性做「画下来」。
+   绝对定位不占流：挂在 hero 下边缘外，正好落在区块间距里，
+   和下一节标题的几何标记同一条竖线上，顺势把视线带进去——
+   进流里会在密排的正文后面多撕出 130px 空白，那段路太长了。 */
+/* left:12px = 下一节标记（26px 方/圆，left:0）的中线，线正对着它落下去 */
+.cue{position:absolute;left:12px;top:calc(100% + 8px);
+  width:2px;height:48px;background:var(--line);transform-origin:top;
+  animation:cue-in .6s var(--ease) both 1.5s}
+.cue i{position:absolute;left:-4px;width:10px;height:10px;background:var(--accent);
+  animation:cue-run 2.1s var(--ease) infinite 1.9s}
 .hero h1{font:var(--track) clamp(40px,7vw,68px)/.98 var(--head);letter-spacing:-2px}
 .hero h1 b{color:var(--accent)}
 .tag{display:inline-block;font:600 12px var(--mono);border:var(--bd) solid var(--line);
   padding:4px 10px;margin:6px 6px 0 0}
 .hero p{margin-top:20px;font-size:16.5px;color:var(--muted);max-width:50ch}
-/* 黄色信息块 + 压在角上的红圆；压在标题上会毁掉文字对比度，所以放这里 */
-.facts{position:relative;background:var(--facts-bg);border:var(--bd) solid var(--line);padding:20px}
+/* 黄色信息块 + 压在角上的红圆；压在标题上会毁掉文字对比度，所以放这里。
+   顶边比左栏低一档，两栏错开比齐平更有节奏 */
+.facts{position:relative;margin-top:36px;
+  background:var(--facts-bg);border:var(--bd) solid var(--line);padding:20px}
 .facts::before{content:"";position:absolute;right:-24px;top:-24px;width:66px;height:66px;
   border-radius:50%;background:var(--accent);border:2px solid var(--line)}
 .facts dl{display:grid;grid-template-columns:auto 1fr;gap:10px 16px;font-size:14px}
@@ -500,14 +531,43 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 #bar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent);z-index:60;
   transition:width .08s linear}
 
-.reveal{opacity:0;transform:translateY(16px);
+.reveal{opacity:0;transform:translateY(22px) scale(.99);
   transition:opacity var(--dur) var(--ease) var(--d,0s),transform var(--dur) var(--ease) var(--d,0s)}
 .reveal.in{opacity:1;transform:none}
+/* 时间线上的卡片改成从左侧吸附到轴上，节点跟着卡片一起过去。
+   必须写 :not(.in)——这条比上面的 .reveal.in 更具体，不排除落位态就永远归不了位 */
+.timeline .card.reveal:not(.in){transform:translate(-22px,10px)}
+/* 区块标题落定后再横着拉出一条强调线。只有参与 reveal 的标题才藏起来等动画——
+   博客页的 .h2 不走 reveal，直接常驻显示 */
+.h2::after{content:"";position:absolute;left:42px;right:0;bottom:-11px;height:2px;
+  background:var(--accent);transform-origin:left;
+  transition:transform .55s var(--ease) calc(var(--d,0s) + .18s)}
+.h2.reveal::after{transform:scaleX(0)}
+.h2.reveal.in::after{transform:scaleX(1)}
 
 @keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
-.hero h1,#tags,#bio,.facts,.post-title,.post-meta{animation:rise .7s var(--ease) both}
-#tags{animation-delay:.09s} #bio{animation-delay:.18s} .facts{animation-delay:.27s}
+.post-title,.post-meta{animation:rise .7s var(--ease) both}
 .post-meta{animation-delay:.1s}
+
+/* ---- 首屏入场：一条编排好的时间线 ----
+   几何块(0) → 标题行擦入(.1) → 主名逐字落(.26) → 信息块(.8) → 标签逐枚(.72+)
+   → 简介(.95) → 红圆弹出(1.15) → 下滑提示(1.5)。
+   .tag 这类会被切语言重建的节点，动画挂在 .boot 下面，
+   否则每次切换都重播一遍入场。 */
+@keyframes shape-in{from{opacity:0;scale:.35;rotate:-50deg}}
+@keyframes wipe{from{opacity:0;clip-path:inset(0 100% 0 0);transform:translateY(.14em)}}
+@keyframes chip{from{opacity:0;transform:translateY(12px) scale(.86)}}
+@keyframes panel{from{opacity:0;transform:translateY(26px) scale(.97)}}
+@keyframes pop{from{scale:0;opacity:0}62%{scale:1.12}to{scale:1;opacity:1}}
+@keyframes cue-in{from{scale:1 0}}
+@keyframes cue-run{0%{top:-14px;opacity:0}22%,72%{opacity:1}100%{top:50px;opacity:0}}
+/* 只匹配 h1 的直接子 span：主名那几个逐字 span 在 <b> 里，别被一起命中。
+   inline-block 是必需的——行内盒的 clip-path 参照框不可靠 */
+.hero h1>span{display:inline-block;animation:wipe .75s var(--ease) both .1s}
+.boot .tag{animation:chip .5s var(--ease) both var(--d,0s)}
+#bio{animation:rise .7s var(--ease) both .95s}
+.facts{animation:panel .7s var(--ease) both .8s}
+.facts::before{animation:pop .55s var(--ease) both 1.15s}
 
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.3s}
 
@@ -554,9 +614,103 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
     @keyframes mark{from{transform:rotate(-60deg) scale(.55)}to{transform:none}}
     .h2::before{animation:mark linear both;
       animation-timeline:view();animation-range:entry 20% cover 35%}
-    @keyframes drift{from{transform:translateY(-22px)}to{transform:translateY(22px)}}
-    .facts::before{animation:drift linear both;animation-timeline:view()}
+    /* 红圆：先弹出，之后交给滚动做视差。两段必须写进同一个 animation 列表——
+       一个元素只有一条列表，分开声明后写的那条会把前面整条盖掉。
+       弹跳走 scale、视差走 translate，是两个独立属性，不互相抢。 */
+    @keyframes drift{from{translate:0 -22px}to{translate:0 22px}}
+    .facts::before{animation:pop .55s var(--ease) both 1.15s, drift linear both;
+      animation-timeline:auto,view()}
+
+    /* hero 退场：整块边上浮边淡出，滚到项目区时刚好交接完。
+       动画挂在 .hero 上而不是两列上，免得跟列自己的入场动画抢同一批属性。 */
+    @keyframes hero-off{to{opacity:0;translate:0 -46px;scale:.97}}
+    .hero{animation:hero-off linear both;animation-timeline:view();
+      animation-range:exit 5% exit 85%}
+
+    /* 竖轴随滚动画下来，卡片再逐张吸附上去 */
+    @keyframes axis{from{scale:1 0}}
+    .tl-sec::before{transform-origin:top;animation:axis linear both;
+      animation-timeline:view();animation-range:entry 15% cover 35%}
   }
+}
+@supports (animation-timeline: scroll()){
+  @media (prefers-reduced-motion: no-preference){
+    /* 几何块按各自 --pk 下沉；只映射第一屏的滚动量，再往下它们早出画了 */
+    @keyframes art-drift{to{translate:0 var(--pk)}}
+    .hero-art i{animation:shape-in .8s var(--ease) both var(--d,0s), art-drift linear both;
+      animation-timeline:auto,scroll();animation-range:0 100vh}
+    /* 一开滚，下滑提示就退场——它只在「还没动过」的时候有意义 */
+    @keyframes cue-off{to{opacity:0}}
+    .cue{animation:cue-in .6s var(--ease) both 1.5s, cue-off linear both;
+      animation-timeline:auto,scroll();animation-range:0 180px}
+  }
+}
+
+/* ---- 滚动收拢：开屏是居中放大的自我介绍，随滚动缩回左栏，右侧卡片跟着浮出 ----
+   .hero 变成一条 175vh 的跑道，.stage 在里面 sticky 钉住一屏，钉住的时长
+   = 175vh - 一屏 ≈ 75vh，分镜就排在这段滚动里，不用写一行滚动监听。
+   时间线用 scroll() 按绝对滚动距离走，不用 view()：视图进度会被
+   html 的 scroll-padding-top 往前挪一截，开屏时动画就已经跑掉 6% 了。
+   退化（不支持滚动驱动 / 开了减弱动态 / 窄屏）时整块规则被丢掉，
+   回到上面那套静态两栏，内容一行不少。 */
+@supports (animation-timeline: view()){
+ @media (prefers-reduced-motion: no-preference) and (min-width:901px){
+  /* animation:none 撤掉前面给 .hero 的整块淡出——跑道的 exit 区间在钉住之前就开始了，
+     留着会让它一边收拢一边消失 */
+  .hero{display:block;height:175vh;padding-top:0;animation:none}
+  /* 69px = 顶栏高度。钉在顶栏下沿、高度也扣掉这一截，舞台才正好是「一屏」——
+     用 100vh 的话它会比可见区域高出一个顶栏，底部的下滑提示在开屏时就掉到折线以下 */
+  .stage{position:sticky;top:69px;min-height:calc(100vh - 69px);
+    display:grid;align-content:center;
+    grid-template-columns:1.55fr 1fr;gap:40px;align-items:start}
+
+  /* 35% 是自身宽度的位移量：1.55fr 的列占两栏的 60.8%，右移 35% 中线正好压到容器中线。
+     写百分比而不是 px，换视口宽度不用重算；缩放绕自身中心，位移完就是屏幕中央。 */
+  @keyframes hero-collapse{from{transform:translateX(35%) scale(1.45)}to{transform:none}}
+  .intro{animation:hero-collapse linear both;
+    animation-timeline:scroll();animation-range:0 42vh}
+
+  /* 标题在整块放大之外再单独放大一档，主名大到看得清是什么（约 128px）。
+     缩放原点取 left bottom：往上、往右长，下面的标签和简介一动不动，
+     不用再给它们补一个位移量去追标题长出来的高度。 */
+  /* 大字状态只放大主名，不放大「你好，我是」——那行是引子，跟着一起撑大
+     就没有主次了。两行各自缩放，缩放原点决定它们往哪边让：
+     引子 left top（往上钉住、向下让出 .294em），主名 left bottom（往上长 .294em），
+     让出的和长出的正好抵消，行距不会被吃掉。
+     b 默认是 inline，不加 inline-block 变换根本不生效。 */
+  @keyframes greet-small{from{scale:.7}}
+  .hero h1>span{transform-origin:left top;
+    animation:wipe .75s var(--ease) both .1s, greet-small linear both;
+    animation-timeline:auto,scroll();animation-range:normal,0 42vh}
+  @keyframes name-grow{from{scale:1.3}}
+  .hero h1 b{display:inline-block;transform-origin:left bottom;
+    animation:name-grow linear both;
+    animation-timeline:scroll();animation-range:0 42vh}
+
+  /* 卡片进场时向右偏 56px。视口窄于 1128 时正文已经贴满 wrap，这 56px 会探出
+     视口右缘撑出横向滚动条；clip 只裁掉越界那截，不建滚动容器，
+     sticky 舞台和 scroll() 时间线都不受影响（换成 hidden 就会破）。
+     几何装饰在 1340 以上才出现，那时 wrap 封顶 1080，两侧留白够，不会被裁到。 */
+  body{overflow-x:clip}
+
+  /* 卡片压后半程进场，收拢收到一半才浮出来，两段动作不打架 */
+  @keyframes facts-in{from{opacity:0;transform:translateX(56px) scale(.94)}}
+  .facts{animation:facts-in linear both;
+    animation-timeline:scroll();animation-range:20vh 52vh}
+  /* 钉住期间元素相对视口不动，红圆的滚动视差会冻在半途，这里只留入场弹跳 */
+  .facts::before{animation:pop .55s var(--ease) both 1.15s;animation-timeline:auto}
+
+  /* 52vh 收完，剩下 20 多 vh 钉着让两栏看清楚，
+     再往下 sticky 自然松开、整块滚出去——交接不用再叠一层淡出 */
+
+  .cue{left:50%;top:auto;bottom:22px}
+
+  /* 舞台是整屏高，几何块要按整屏重新摆：红方块抬离底边，
+     视差幅度也收一半，否则收拢还没走完它就漂出画面了 */
+  .hero-art i:nth-child(1){--pk:60px}
+  .hero-art i:nth-child(2){top:152px;--pk:36px}
+  .hero-art i:nth-child(3){bottom:96px;--pk:70px}
+ }
 }
 
 /* ---- 点击涟漪：方块从点击点铺开 ----
@@ -573,14 +727,32 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 
 /* ---- hero 主名逐字落位 ----
    只拆 <b>：它不随语言变，不会被 setLang 的 textContent 重写掉。
-   延迟从 h1 整块 rise 落定之后起算（+120ms），两段动画不打架。 */
+   延迟从标题行擦入落定之后起算（+260ms），两段动画不打架。 */
 @keyframes drop{from{opacity:0;transform:translateY(-.45em) rotate(-10deg)}}
 .hero h1 b span{display:inline-block;white-space:pre;
   animation:drop .5s var(--ease) both var(--d,0s)}
+
+/* 大字状态下主名歪七扭八，收拢的同时逐字摆正——每个字的歪斜量由 JS 写进
+   --r/--x/--y，是固定算式不是随机数：刷新一次换一个姿态反而像渲染出错。
+   歪斜走 rotate/translate 两个独立属性，入场的 drop 占着 transform，互不覆盖；
+   但两条动画必须并进同一个 animation 列表——一个元素只有一条列表，
+   分开声明后写的那条会把前面整条盖掉。
+   写在 drop 后面才盖得住它，挪到上面那块滚动收拢里会被原规则反超。 */
+@supports (animation-timeline: view()){
+ @media (prefers-reduced-motion: no-preference) and (min-width:901px){
+  @keyframes letter-straight{from{rotate:var(--r,0deg);translate:var(--x,0) var(--y,0)}}
+  .hero h1 b span{animation:drop .5s var(--ease) both var(--d,0s),
+                            letter-straight linear both;
+    animation-timeline:auto,scroll();animation-range:normal,0 42vh}
+ }
+}
 /* 系统开了「减弱动态效果」就全部关掉 */
 @media (prefers-reduced-motion: reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;
+    transition-duration:.01ms!important;transition-delay:0s!important}
   .reveal{opacity:1;transform:none}
+  /* 循环动画光压时长会变成空转，直接停掉，摆成落位后的样子 */
+  .cue i{animation:none;top:22px}
   html{scroll-behavior:auto}
 }
 
@@ -628,8 +800,14 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
   .nd-leaf b{margin-right:8px}
 }
 
+/* 1080 栅格两侧各要留出约 130px 才装得下最外侧那块（右下角 106 的四分之一圆
+   探出 140），窄于 1340 就会被视口切掉、甚至撑出横向滚动条，索性不渲染 */
+@media(max-width:1339px){ .hero-art{display:none} }
+
 @media(max-width:900px){
   .hero{grid-template-columns:1fr;gap:28px;padding-top:40px}
+  .facts{margin-top:0}            /* 单栏时两块是上下关系，再错开只是多一段空白 */
+  .cue{height:38px}
   .tl .card{grid-template-columns:1fr;gap:10px}
   .timeline{--off:20px; --node:12px}   /* 窄屏收窄竖轴，别再吃正文宽度 */
   .search{order:4;flex:1 1 100%}
@@ -643,7 +821,8 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
    简历是会被打印的，彩块和顶栏在纸上没有意义。
    ============================================== */
 @media print{
-  .topbar,footer,#bar,.filters,.proj.add,.toc,.tl-side,#empty,.post-back{display:none}
+  .topbar,footer,#bar,.filters,.proj.add,.toc,.tl-side,#empty,.post-back,
+  .hero-art,.cue{display:none}
   html[data-theme]{--bg:#FFF;--paper:#FFF;--fg:#000;--muted:#333;--line:#000;
     --accent:#000;--facts-bg:transparent;--about-bg:transparent;--about-fg:#000;
     --when-bg:transparent;--when-fg:#000;--when-pad:0;

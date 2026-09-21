@@ -5,12 +5,21 @@ description: noSugarK 的个人主页 — 全栈开发、数据可视化、算�
 ---
 
 <section class="hero">
-  <div>
-    <h1><span data-en="Hi, I'm">你好，我是</span><br><b>noSugarK</b></h1>
-    <div style="margin-top:16px" id="tags"></div>
-    <p id="bio"></p>
+  {%- comment -%} 纯装饰：三块包豪斯几何，落在 1080 栅格两侧的空白里，窄屏直接不渲染 {%- endcomment -%}
+  {%- comment -%}
+    .stage 在退化情况下是 display:contents，不生成盒子，两栏直接当 .hero 的网格项；
+    支持滚动驱动动画的宽屏上它才变成被 sticky 钉住的那一屏舞台。
+  {%- endcomment -%}
+  <div class="stage">
+    <div class="hero-art" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="intro">
+      <h1><span data-en="Hi, I'm">你好，我是</span><br><b>noSugarK</b></h1>
+      <div style="margin-top:16px" id="tags"></div>
+      <p id="bio"></p>
+    </div>
+    <div class="facts"><dl id="facts"></dl></div>
+    <div class="cue" aria-hidden="true"><i></i></div>
   </div>
-  <div class="facts"><dl id="facts"></dl></div>
 </section>
 
 <section id="projects">
