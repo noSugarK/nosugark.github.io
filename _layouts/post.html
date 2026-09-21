@@ -19,3 +19,37 @@ layout: default
   </div>
   <a class="post-back" href="{{ '/blog/' | relative_url }}"><i>←</i> <span data-en="Back to blog">返回博客</span></a>
 </article>
+
+{%- comment -%}
+  公式和流程图都是按需加载：front matter 里写 math: true / mermaid: true
+  才会吐出下面的 script，没写的文章一字节不多拉。
+  放在 .prose 之后，所以脚本跑的时候正文 DOM 已经在了。
+{%- endcomment -%}
+
+{%- if page.math %}
+<script>
+/* kramdown 默认把 $$…$$ 输出成 <script type="math/tex">——那是 MathJax 2 的接口，
+   v3 不认。先换回 \(…\) / \[…\] 分隔符；如果哪天 kramdown 改成原样吐 $$…$$，
+   MathJax 3 默认的 displayMath 也能接住，两种输出都覆盖。 */
+document.querySelectorAll('script[type^="math/tex"]').forEach(s => {
+  const d = s.type.includes("mode=display");
+  s.replaceWith(d ? "\\[" + s.textContent + "\\]" : "\\(" + s.textContent + "\\)");
+});
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+{%- endif %}
+
+{%- if page.mermaid %}
+<script type="module">
+/* ```mermaid 代码块 -> 画布。site.js 的 enhanceCode 已经跳过这类块，
+   不会被包成带复制按钮的 .codeblock。 */
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+document.querySelectorAll(".prose code.language-mermaid").forEach(c => {
+  const pre = c.closest("pre");
+  pre.className = "mermaid";
+  pre.textContent = c.textContent;
+});
+mermaid.initialize({startOnLoad:false, securityLevel:"strict", fontFamily:"inherit"});
+mermaid.run({querySelector:".prose pre.mermaid"});
+</script>
+{%- endif %}

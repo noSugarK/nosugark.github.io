@@ -410,6 +410,11 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .codeblock .copy:hover{border-color:var(--accent);color:var(--accent)}
 .codeblock .copy.done{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 .codeblock pre{margin:0;padding:16px 18px;border:0;background:transparent}
+/* mermaid 画布：清掉 .prose pre 的框和底色。
+   ponytail: 深色模式直接反色，省一套主题重渲染；
+   多彩图表颜色会走形，真需要精确配色再改成监听 data-theme 重跑 mermaid.run。 */
+.prose pre.mermaid{border:0;background:transparent;padding:0;text-align:center;line-height:normal}
+[data-theme="dark"] .prose pre.mermaid{filter:invert(1) hue-rotate(180deg)}
 .prose blockquote{border-left:8px solid var(--accent);padding-left:18px;color:var(--muted)}
 .prose img{max-width:100%;border:var(--bd) solid var(--line)}
 /* 图片独占一段时 JS 把外层 <p> 换成 <figure>，alt 直接当图注 */
