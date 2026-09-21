@@ -420,7 +420,7 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .prose blockquote{border-left:8px solid var(--accent);padding-left:18px;color:var(--muted)}
 .prose img{max-width:100%;border:var(--bd) solid var(--line)}
 /* 图片独占一段时 JS 把外层 <p> 换成 <figure>，alt 直接当图注 */
-.prose figure img{display:block}
+.prose figure img{display:block;margin-inline:auto}   /* display:block 自己不会居中，靠 auto 边距 */
 .prose figcaption{margin-top:8px;font:500 13.5px var(--font);color:var(--muted);text-align:center}
 .prose table{width:100%;border-collapse:collapse;font-size:15px}
 .prose th,.prose td{border:1px solid var(--line);padding:8px 12px;text-align:left}
