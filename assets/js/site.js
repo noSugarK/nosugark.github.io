@@ -442,9 +442,13 @@ function enhanceCode(){
   if(!isPost) return;
   $$(".prose pre").forEach(pre => {
     const code = pre.querySelector("code");
-    /* 语言名：kramdown/Rouge 写成 class="language-yaml" 或 data-lang="yaml" */
-    const lang = (code && (code.dataset.lang ||
-      (code.className.match(/language-([\w-]+)/) || [])[1])) || "";
+    /* 语言名的位置分两种：Rouge 认识的语言会被高亮，语言名落在外层
+       <div class="language-python highlighter-rouge"> 上，code 上什么都没；
+       Rouge 不认的（比如 mermaid）没有外层 div，反而留在 code 上。两处都找。 */
+    const host = pre.closest('[class*="language-"]');
+    const lang = (code && code.dataset.lang) ||
+      (((code ? code.className : "") + " " + (host ? host.className : ""))
+        .match(/language-([\w-]+)/) || [])[1] || "";
 
     /* mermaid 块由 post.html 里的渲染脚本接管，不包成带复制按钮的代码块 */
     if(lang === "mermaid") return;
