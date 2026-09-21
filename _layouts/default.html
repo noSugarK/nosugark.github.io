@@ -6,6 +6,8 @@
 <title>{% if page.url == "/" %}{{ site.title }} — 个人主页{% else %}{{ page.title }} · {{ site.title }}{% endif %}</title>
 <meta name="description" content="{{ page.description | default: site.description }}">
 <link rel="canonical" href="{{ page.url | absolute_url }}">
+{%- comment -%} 和顶栏的品牌块一个调子：红底白“n”。SVG 一个文件就够，不用导多尺寸 {%- endcomment -%}
+<link rel="icon" type="image/svg+xml" href="{{ '/assets/favicon.svg' | relative_url }}">
 <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ '/feed.xml' | relative_url }}">
 {%- comment -%}
   带上构建时间做指纹：不加的话改完样式 / 脚本，浏览器还在跑缓存里的旧文件，
