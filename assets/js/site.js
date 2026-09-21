@@ -15,7 +15,9 @@ const FACTS = [
   [{zh:"出生",en:"BORN"},   "2004.05"],
   [{zh:"籍贯",en:"FROM"},   {zh:"湖北 · 荆州",en:"Jingzhou, Hubei"}],
   [{zh:"院校",en:"SCHOOL"}, {zh:"湖北第二师范学院",en:"Hubei Univ. of Education"}],
+  [{zh:"专业",en:"MAJOR"},  {zh:"计算机科学与技术",en:"Computer Science and Technology"}],
   [{zh:"邮箱",en:"EMAIL"},  "nosugark@qq.com"],
+  [{zh:"所在地",en:"LOCATION"}, {zh:"湖北 · 武汉",en:"Wuhan, Hubei"}],
   [{zh:"状态",en:"STATUS"}, {zh:"在职",en:"employed"}],
 ];
 /* 每个分类都必须有项目，否则点进去是空的。加分类前先确认有东西归进去 */
@@ -71,7 +73,7 @@ const PROJECTS = [
 ];
 
 const SKILLS = ["Python","C / C++","Django / DRF","Vue3","Tauri / Rust","PySide6 / PyQt6",
-                "MySQL / PostgreSQL","YOLO / Ultralytics","OpenCV","PyTorch",
+                "MySQL / SQLite","YOLO / Ultralytics","OpenCV","PyTorch",
                 "LLM / Agent","WebSocket","Docker","Git"];
 
 const EDU = [
@@ -139,8 +141,8 @@ const EXP = [
 
 const AWARDS = [
   [{zh:"银奖",en:"Silver"},   {zh:"2025 ICPC 贵州省赛",en:"2025 ICPC Guizhou Provincial Contest"}],
-  [{zh:"国二",en:"Nat. 2nd"}, {zh:"2025 第十六届蓝桥杯 Python 组国赛",en:"2025 16th Lanqiao Cup, Python group, national final"}],
-  [{zh:"国三",en:"Nat. 3rd"}, {zh:"2023 第十四届蓝桥杯 C/C++ 组国赛",en:"2023 14th Lanqiao Cup, C/C++ group, national final"}],
+  [{zh:"二等",en:"2nd"},      {zh:"2025 第十六届蓝桥杯 Python 组国赛",en:"2025 16th Lanqiao Cup, Python group, national final"}],
+  [{zh:"三等",en:"3rd"},      {zh:"2023 第十四届蓝桥杯 C/C++ 组国赛",en:"2023 14th Lanqiao Cup, C/C++ group, national final"}],
   [{zh:"三等",en:"3rd"},      {zh:"2024 睿抗机器人开发者大赛全国总决赛",en:"2024 RAICOM Robot Developer Contest, national final"}],
   [{zh:"二等",en:"2nd"},      {zh:"2024 第十七届智能汽车竞赛 5G 无人车",en:"2024 17th Smart Car Competition, 5G autonomous vehicle"}],
   [{zh:"三等",en:"3rd"},      {zh:"2025 第十届团体程序设计天梯赛总决赛",en:"2025 10th GPLT national final"}],
@@ -148,8 +150,8 @@ const AWARDS = [
 ];
 
 const ABOUT = {
-  zh:"扎实的编程基础，熟练 C / C++ / Python；对嵌入式与 Web 开发都有涉猎。善于分析和吸取经验，性格开朗，团队荣誉感强，有明确的职业规划。",
-  en:"Solid programming fundamentals in C, C++ and Python, with hands-on exposure to both embedded and web development. Analytical, easy to work with, and clear about where I'm heading."
+  zh:"扎实的编程基础，熟练使用流行Coding Agent工具开发：Claude Code、Codex、Trae、Qoder；对嵌入式与 Web 开发都有涉猎。善于分析和吸取经验，性格开朗，团队荣誉感强。",
+  en:"Possesses a solid foundation in programming and is proficient in using popular AI coding agents—such as Claude Code, Codex, Trae, and Qoder—for development. Experienced in both embedded systems and web development. Skilled at analysis and learning from experience; possesses an outgoing personality and a strong sense of team spirit."
 };
 
 const UI = {
