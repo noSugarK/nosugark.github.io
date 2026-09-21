@@ -692,5 +692,17 @@ syncToc();
 syncTimeline();
 enhanceCode();
 
-/* 正文图片统一懒加载 + 异步解码。markdown 语法带不了属性，只能在这儿补。 */
-if(isPost) $$(".prose img").forEach(im => { im.loading = "lazy"; im.decoding = "async"; });
+/* 正文图片：懒加载 + 异步解码，顺带把 alt 兜成图注。markdown 语法带不了属性，只能在这儿补。 */
+if(isPost) $$(".prose img").forEach(im => {
+  im.loading = "lazy"; im.decoding = "async";
+  /* 只处理"图片独占一段"这种：kramdown 输出 <p><img></p>，
+     figure 不能嵌在 p 里，所以是把整个 p 换掉而不是往里插。
+     行内图、带链接的图（img 的父节点是 a）都跳过，不加图注。 */
+  const p = im.parentNode;
+  if(!im.alt || p.tagName !== "P" || p.children.length !== 1 || p.textContent.trim()) return;
+  const cap = document.createElement("figcaption");
+  cap.textContent = im.alt;
+  const fig = document.createElement("figure");
+  fig.append(im, cap);
+  p.replaceWith(fig);
+});
