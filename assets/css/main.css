@@ -375,7 +375,9 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .post-excerpt{margin-top:12px;color:var(--muted);font-size:15px;line-height:1.6}
 
 /* ---- 文章 ---- */
-.post{max-width:72ch;padding-top:56px}
+/* margin-inline:auto：窗口不够宽、不走两栏时，剩余宽度均分到两侧，
+   不再全堆在右边空出一大块 */
+.post{max-width:72ch;margin-inline:auto;padding-top:56px}
 .post-title{font:var(--track) clamp(30px,5vw,46px)/1.1 var(--head);letter-spacing:-1.5px}
 .post-meta{font:600 12.5px var(--mono);color:var(--accent);letter-spacing:1.5px;margin-top:10px}
 /* 文章页标签也是链接：默认与元信息同色，下划线做可点提示 */
@@ -482,7 +484,10 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 /* 宽屏：正文仍是 72ch，右侧空出来的那一列放粘性目录。
    top:88px 是为了让开 sticky 顶栏（约 66px）再留点呼吸。
    用 :has(.toc) 只在真的有目录时才切两栏，短文章不会留一条空列。 */
-@media(min-width:1120px){
+/* 960px：两栏所需的最小宽度。230(目录)+48(栏间)+48(wrap 内边距)+634(正文)，
+   正文栏跟单栏时的 72ch 基本持平——早点切两栏不会把正文压窄。
+   原来定在 1120px，960–1120 这段只能单栏，多出的宽度全成了右侧留白。 */
+@media(min-width:960px){
   .post:has(.toc){
     display:grid;
     grid-template-columns:minmax(0,80ch) 230px;
