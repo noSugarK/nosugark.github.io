@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240" role="img" aria-label="三色几何构成">
+  <rect width="480" height="240" fill="#F7F4EC"/>
+  <circle cx="110" cy="120" r="74" fill="#1B4D9E"/>
+  <rect x="196" y="46" width="148" height="148" fill="#F5C400"/>
+  <path d="M356 194 L430 46 L470 194 Z" fill="#E1261C"/>
+  <path d="M40 210 H460" stroke="#16161A" stroke-width="4"/>
+</svg>
