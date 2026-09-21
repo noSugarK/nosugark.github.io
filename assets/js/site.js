@@ -595,6 +595,49 @@ addEventListener("scroll", ()=>{
   syncTimeline();
 }, {passive:true});
 
+
+/* 磁吸 + 卡片强调块：全站共用一个 pointermove。
+   按钮、技能、卡片都是脚本现渲染的，所以走委托而不是逐个绑定。
+   这里只写 CSS 变量，位移交给合成层，不碰布局。
+   .mag 挂上就不摘：摘掉会把 transition 一起摘掉，指针移开时元素会瞬回原位。 */
+if(MOTION) addEventListener("pointermove", e => {
+  const el = e.target.closest?.(".filters button,.tgl,.skill,.stack a,.gh");
+  if(el){
+    const r = el.getBoundingClientRect();
+    el.classList.add("mag");
+    el.style.setProperty("--mx", ((e.clientX - r.left - r.width / 2) * .25).toFixed(1) + "px");
+    el.style.setProperty("--my", ((e.clientY - r.top - r.height / 2) * .35).toFixed(1) + "px");
+  }
+  /* 色块宽 72，夹在卡片内，不让它探出边框 */
+  const card = e.target.closest?.(".proj:not(.add),.post-row");
+  if(card){
+    const r = card.getBoundingClientRect();
+    const x = Math.min(Math.max(e.clientX - r.left - 36, 0), Math.max(r.width - 72, 0));
+    card.style.setProperty("--px", x.toFixed(1) + "px");
+  }
+}, {passive:true});
+
+
+/* 点击涟漪：动画靠重挂类名重启，中间那次 offsetWidth 是必要的强制重排，
+   不然同一个按钮连点第二下不会重新播放。 */
+if(MOTION) addEventListener("pointerdown", e => {
+  const el = e.target.closest?.(".filters button,.tgl,.gh");
+  if(!el) return;
+  const r = el.getBoundingClientRect();
+  el.style.setProperty("--rx", (e.clientX - r.left).toFixed(1) + "px");
+  el.style.setProperty("--ry", (e.clientY - r.top).toFixed(1) + "px");
+  el.classList.remove("rip"); void el.offsetWidth; el.classList.add("rip");
+}, {passive:true});
+
+/* hero 主名逐字落位：逐个建 span 而不是拼 innerHTML，省掉转义这一层 */
+const heroName = $(".hero h1 b");
+if(heroName && MOTION) heroName.replaceChildren(...[...heroName.textContent].map((c, i) => {
+  const s = document.createElement("span");
+  s.textContent = c;
+  s.style.setProperty("--d", i * 55 + 120 + "ms");
+  return s;
+}));
+
 /* 导航跟随当前区块高亮 */
 const spy = new IntersectionObserver(es => es.forEach(e => {
   if(!e.isIntersecting) return;

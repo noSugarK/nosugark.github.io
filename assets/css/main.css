@@ -473,6 +473,72 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.3s}
 
+
+/* ---- 跨文档换页：同源导航整页过渡 ----
+   顶栏单独命名，换页时原地不动，只有正文滑一下。
+   types:page 把这套滑动限定给导航；主题 / 语言切换是同文档过渡，
+   仍然走上面那条交叉淡出。不认这套语法的浏览器会整条丢掉下面两条规则，
+   退回默认淡出，不需要写降级代码。 */
+@view-transition{navigation:auto; types:page}
+.topbar{view-transition-name:topbar}
+@keyframes vt-out{to{opacity:0;transform:translateY(-14px)}}
+@keyframes vt-in{from{opacity:0;transform:translateY(20px)}}
+:root:active-view-transition-type(page)::view-transition-old(root){
+  animation:vt-out .2s var(--ease) both}
+:root:active-view-transition-type(page)::view-transition-new(root){
+  animation:vt-in .34s var(--ease) both}
+
+/* ---- 磁吸：指针在元素上时轻微跟随，移开归位 ----
+   .mag 由 JS 在 pointermove 时挂上——开了「减弱动态效果」脚本就不挂，
+   这几条 hover 规则也就永远不生效，不用再写一份 reduce 覆盖。
+   --lift 把元素原本的上浮量补回来，否则磁吸会把它吃掉。 */
+.mag{transition:transform .18s var(--ease)}
+.mag:hover{transform:translate(var(--mx,0px),calc(var(--my,0px) + var(--lift,0px)))}
+.mag:active{transform:translate(var(--mx,0px),var(--my,0px)) scale(.94)}
+.skill.mag{--lift:-3px}
+.gh.mag{--lift:-2px}
+
+/* ---- 卡片顶边的强调块跟着指针横向走 ----
+   悬停不只是换个边框色，而是有块能被指针推着走的实心色块。
+   占位卡（.add）是虚线框的空壳，不给它加。 */
+.post-row{position:relative;overflow:hidden}
+.proj::after,.post-row::after{content:"";position:absolute;left:0;top:0;
+  width:72px;height:10px;background:var(--accent);opacity:0;
+  transform:translateX(var(--px,0px));
+  transition:opacity .18s ease,transform .1s linear}
+.proj:hover::after,.post-row:hover::after{opacity:1}
+.proj.add::after{display:none}
+
+/* ---- 滚动驱动：区块标记转正、hero 红圆视差 ----
+   时间轴交给浏览器，没有滚动监听；不支持就是静止的几何块，本来也没少什么。 */
+@supports (animation-timeline: view()){
+  @media (prefers-reduced-motion: no-preference){
+    @keyframes mark{from{transform:rotate(-60deg) scale(.55)}to{transform:none}}
+    .h2::before{animation:mark linear both;
+      animation-timeline:view();animation-range:entry 20% cover 35%}
+    @keyframes drift{from{transform:translateY(-22px)}to{transform:translateY(22px)}}
+    .facts::before{animation:drift linear both;animation-timeline:view()}
+  }
+}
+
+/* ---- 点击涟漪：方块从点击点铺开 ----
+   包豪斯不要圆，扩的是实心方块（aspect-ratio 保方），溢出部分被按钮裁回硬边。
+   --rx/--ry 是点击点，由 JS 在 pointerdown 时写入。
+   高亮 / 悬停态的按钮底色本身就是强调色，涟漪改用当前字色，否则看不见。 */
+.filters button,.tgl,.gh{position:relative;overflow:hidden}
+@keyframes rip{from{transform:translate(-50%,-50%) scale(0);opacity:.45}
+                 to{transform:translate(-50%,-50%) scale(1);opacity:0}}
+.rip::after{content:"";position:absolute;left:var(--rx);top:var(--ry);
+  width:260%;aspect-ratio:1;background:var(--accent);pointer-events:none;
+  animation:rip .45s var(--ease) both}
+.filters button.on::after,.tgl:hover::after,.gh::after{background:currentColor}
+
+/* ---- hero 主名逐字落位 ----
+   只拆 <b>：它不随语言变，不会被 setLang 的 textContent 重写掉。
+   延迟从 h1 整块 rise 落定之后起算（+120ms），两段动画不打架。 */
+@keyframes drop{from{opacity:0;transform:translateY(-.45em) rotate(-10deg)}}
+.hero h1 b span{display:inline-block;white-space:pre;
+  animation:drop .5s var(--ease) both var(--d,0s)}
 /* 系统开了「减弱动态效果」就全部关掉 */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
