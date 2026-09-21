@@ -818,20 +818,105 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 }
 
 /* ===================== 打印 =====================
-   简历是会被打印的，彩块和顶栏在纸上没有意义。
+   打印出来的是一份简历，目标就一个：全部塞进一页 A4。
+   装饰、导航、动效一律不上纸；内容重排成
+   个人信息 → 教育 → 技能 → 项目 → 经历 → 获奖，项目和经历各只留前三条。
+   有个自动生效的好处：滚动收拢那整块规则带 min-width:901px，
+   而打印页宽是 186mm ≈ 703px，条件不成立——sticky 舞台、放大、歪斜
+   在纸上自己就失效了，不用再写一份关掉它的覆盖。
    ============================================== */
 @media print{
+  @page{size:A4;margin:12mm}     /* 可印区 186mm × 273mm，下面的尺寸都按这个配 */
+
+  /* 纸上用不着的：导航、页脚、筛选、装饰、链接按钮，
+     以及和开头简介重复的「关于」和项目技术栈标签 */
   .topbar,footer,#bar,.filters,.proj.add,.toc,.tl-side,#empty,.post-back,
-  .hero-art,.cue{display:none}
-  html[data-theme]{--bg:#FFF;--paper:#FFF;--fg:#000;--muted:#333;--line:#000;
+  .hero-art,.cue,#about,.h2 em,.h2::after,.timeline .tl-title em,
+  .proj .go,.proj .stack,.hero h1>span,.hero h1 br{display:none}
+  .proj::before,.proj::after,.facts::before,.h2::before{display:none}
+
+  html[data-theme]{--bg:#FFF;--paper:#FFF;--fg:#000;--muted:#222;--line:#000;
     --accent:#000;--facts-bg:transparent;--about-bg:transparent;--about-fg:#000;
     --when-bg:transparent;--when-fg:#000;--when-pad:0;
     --medal-bg:transparent;--medal-fg:#000;--medal-bd:#000;
     --s1:transparent;--s2:transparent;--s3:transparent;
     --s1-fg:#000;--s2-fg:#000;--s3-fg:#000}
-  .proj::before,.facts::before,.h2::before{display:none}
-  .h2{padding-left:0}
-  section{padding-top:24px;break-inside:avoid}
-  .card{break-inside:avoid}
-  .reveal{opacity:1;transform:none}
+  /* 动效一律不参与排版。尤其是 hero 那条滚动退场动画：它带 opacity:0 和
+     translate/scale，纸上没有滚动位置可言，落到哪个进度全看浏览器，
+     实测会把整个抬头印成一片空白。 */
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  body{line-height:1.4}
+  .wrap{max-width:none;padding:0}
+  /* 没滚到过的区块不能印成一片空白。必须带 !important：
+     时间线卡片那条入场位移写的是 .timeline .card.reveal:not(.in)，
+     四个类比这里具体，不加 !important 盖不住——纸上会把卡片整体左移 22px，
+     日期那一栏直接被页边裁掉。 */
+  .reveal{opacity:1!important;transform:none!important}
+  section,.card{break-inside:avoid}
+
+  /* 纸上的顺序和屏幕上不一样：先看人和学历。用 order 重排，不动 DOM。
+     :has(.hero) 把它限定在首页——文章页的 main 不该被改成 flex */
+  main:has(.hero){display:flex;flex-direction:column;gap:10px}
+  main>section{padding:0}
+  .hero{order:1} #edu{order:2} #skills{order:3}
+  #projects{order:4} #exp{order:5} #awards{order:6}
+
+  /* ---- 抬头：姓名 + 一句话简介在左，履历事实在右 ---- */
+  .hero{display:grid;grid-template-columns:1fr 232px;gap:0 18px;align-items:start;
+    padding:0 0 7px;border-bottom:1.5px solid #000}
+  .hero h1{font-size:30px;line-height:1.05;letter-spacing:-.6px}
+  #tags{margin-top:3px!important}
+  .tag{border:0;padding:0;margin:0;font-size:10px}
+  .tag+.tag::before{content:" · "}
+  .hero p{margin-top:4px;font-size:10.5px;max-width:none;color:#000}
+  .facts{margin:0;padding:0;border:0;background:none}
+  .facts dl{gap:1px 8px;font-size:10.5px}
+  .facts dt{font-size:8.5px;letter-spacing:.4px;opacity:1;padding-top:1px}
+
+  /* ---- 区块小标题：一行字 + 一条通栏细线 ---- */
+  .h2{display:block;width:auto;margin:0 0 5px;padding:0 0 2px;
+    border-bottom:1px solid #000}
+  .h2 span{font-size:13.5px;letter-spacing:0;line-height:1.2}
+
+  /* ---- 卡片一律去边框底色，压成紧凑列表 ---- */
+  .card{padding:0;border:0;background:none}
+
+  /* ---- 技能：串成一行，14 枚标签占两行就够 ---- */
+  .skills{display:block}
+  .skill{display:inline;border:0;padding:0;font-size:10.5px;background:none;color:#000}
+  .skill+.skill::before{content:" · "}
+
+  /* ---- 项目：只留前三个，改单列，标题和分类并作一行 ---- */
+  .grid{display:block}
+  #grid>:nth-child(n+4){display:none}
+  .proj{padding:0;margin-bottom:4px}
+  .proj h3{display:inline;font-size:12px}
+  .proj .sub{display:inline;font-size:9px;margin:0;letter-spacing:.6px}
+  .proj .sub::before{content:" · "}
+  .proj p{margin-top:1px;font-size:10.5px;color:#000}
+
+  /* ---- 经历 / 教育：撤掉竖轴和节点，日期窄栏靠左 ---- */
+  .timeline{padding-left:0}
+  .tl-sec::before,.timeline .card::before,.timeline .tl-title::before{display:none}
+  .tl-sec{gap:0} .tl-sec+.tl-sec{margin-top:4px}
+  .timeline .tl-title{margin:0;font-size:9.5px;letter-spacing:1.2px}
+  .tl{gap:0}
+  .tl .card{grid-template-columns:92px 1fr;gap:0 10px;margin-bottom:4px}
+  /* 日期栏定宽 92，实测文字 82.6；nowrap 保证换字体也只会往 10px 的栏间距里挤，
+     不会折行把卡片撑高 */
+  .when{font-size:10px;line-height:1.45;white-space:nowrap}
+  .tl h3{display:inline;font-size:12px}
+  .tl .role{display:inline;font-size:10px;margin:0}
+  .tl .role::before{content:" · "}
+  .tl ul{font-size:10.5px;color:#000}
+  .tl li{margin-bottom:0;padding-left:9px}
+  .tl li::before{width:3px;height:3px;top:.55em}
+  /* 「前三条经历」= 工作 1 条 + 实习 2 条，在校经历不上简历 */
+  #exp-list [data-kind="campus"]{display:none}
+
+  /* ---- 获奖：两栏，一条一行 ---- */
+  .awards{grid-template-columns:1fr 1fr;gap:0 16px}
+  .award{padding:0;gap:5px;font-size:10.5px;align-items:baseline}
+  .medal{padding:0;border:0;font-size:10px;letter-spacing:0}
+  .medal::after{content:" ·"}
 }
