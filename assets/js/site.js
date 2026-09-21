@@ -691,3 +691,6 @@ initTagbar();
 syncToc();
 syncTimeline();
 enhanceCode();
+
+/* 正文图片统一懒加载 + 异步解码。markdown 语法带不了属性，只能在这儿补。 */
+if(isPost) $$(".prose img").forEach(im => { im.loading = "lazy"; im.decoding = "async"; });
