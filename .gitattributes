@@ -1,0 +1,4 @@
+# git 钩子是 shell 脚本：在 Windows 上被检出成 CRLF 的话，
+# shebang 变成 "#!/bin/sh\r"，一跑就是 bad interpreter。强制 LF。
+tools/hooks/* text eol=lf
+*.sh text eol=lf
