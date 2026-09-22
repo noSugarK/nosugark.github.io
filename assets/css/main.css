@@ -73,10 +73,16 @@ html[data-theme="dark"]{
 :root{
   --cur:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 3L21.6 14.4L12.6 16.2L9 25.2Z' fill='%23E1261C' stroke='%2316161A' stroke-width='2.2' stroke-linejoin='miter'/%3E%3C/svg%3E") 2 2, auto;
   --cur-hit:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23E1261C' fill-opacity='0.3' stroke='%2316161A' stroke-width='2.5'/%3E%3C/svg%3E") 14 14, pointer;
+  /* 放大镜 = 可点击的圆再加一道 +/−：同一个几何原形，只换里面的记号，
+     不另起一套形状。看大图和退出各一个，回退值给原生 zoom-in / zoom-out。 */
+  --cur-zoom:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23E1261C' fill-opacity='0.3' stroke='%2316161A' stroke-width='2.5'/%3E%3Cpath d='M14 10.5v7M10.5 14h7' fill='none' stroke='%2316161A' stroke-width='2.5' stroke-linecap='butt'/%3E%3C/svg%3E") 14 14, zoom-in;
+  --cur-zoom-out:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23E1261C' fill-opacity='0.3' stroke='%2316161A' stroke-width='2.5'/%3E%3Cpath d='M10.5 14h7' fill='none' stroke='%2316161A' stroke-width='2.5' stroke-linecap='butt'/%3E%3C/svg%3E") 14 14, zoom-out;
 }
 html[data-theme="dark"]{
   --cur:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 3L21.6 14.4L12.6 16.2L9 25.2Z' fill='%23F2C230' stroke='%23121214' stroke-width='2.2' stroke-linejoin='miter'/%3E%3C/svg%3E") 2 2, auto;
   --cur-hit:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23F2C230' fill-opacity='0.3' stroke='%23F2C230' stroke-width='2.5'/%3E%3C/svg%3E") 14 14, pointer;
+  --cur-zoom:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23F2C230' fill-opacity='0.3' stroke='%23F2C230' stroke-width='2.5'/%3E%3Cpath d='M14 10.5v7M10.5 14h7' fill='none' stroke='%23F2C230' stroke-width='2.5' stroke-linecap='butt'/%3E%3C/svg%3E") 14 14, zoom-in;
+  --cur-zoom-out:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23F2C230' fill-opacity='0.3' stroke='%23F2C230' stroke-width='2.5'/%3E%3Cpath d='M10.5 14h7' fill='none' stroke='%23F2C230' stroke-width='2.5' stroke-linecap='butt'/%3E%3C/svg%3E") 14 14, zoom-out;
 }
 html{cursor:var(--cur)}
 a,button,summary,[role="button"]{cursor:var(--cur-hit)}
@@ -87,6 +93,8 @@ input,textarea,select,.search{cursor:text}
 @media (forced-colors: active){
   html{cursor:auto}
   a,button,summary,[role="button"]{cursor:pointer}
+  .prose img{cursor:zoom-in}
+  .lightbox{cursor:zoom-out}
 }
 
 /* ===================== 基础 ===================== */
@@ -481,7 +489,7 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
   fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 /* 折叠式：> [!NOTE]- 默认收起，> [!NOTE]+ 默认展开。
    summary 自带的三角各浏览器画得不一样，关掉换成右侧自己的箭头。 */
-.callout details>summary{cursor:pointer;list-style:none}
+.callout details>summary{list-style:none}
 .callout details>summary::-webkit-details-marker{display:none}
 .callout details>summary::after{content:"";flex:none;margin-left:auto;width:6px;height:6px;
   border-right:2px solid currentColor;border-bottom:2px solid currentColor;
@@ -496,10 +504,10 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
    原生 <dialog>：Esc、遮罩、焦点、置顶层都由浏览器负责，这里只管尺寸和配色。
    display 必须挂在 [open] 上——写在 .lightbox 上会盖掉 UA 的
    dialog:not([open]){display:none}，关着的弹层会一直铺在页面上。 */
-.prose img{cursor:zoom-in}
-.prose a img{cursor:pointer}            /* 带链接的图归链接，不放大 */
+.prose img{cursor:var(--cur-zoom)}
+.prose a img{cursor:var(--cur-hit)}     /* 带链接的图归链接，不放大 */
 .lightbox{border:0;padding:0;background:none;
-  width:100vw;height:100dvh;max-width:none;max-height:none;cursor:zoom-out}
+  width:100vw;height:100dvh;max-width:none;max-height:none;cursor:var(--cur-zoom-out)}
 .lightbox[open]{display:grid;place-items:center}
 .lightbox::backdrop{background:rgb(0 0 0 / .82)}
 .lightbox img{max-width:92vw;max-height:92dvh;object-fit:contain;
@@ -544,7 +552,7 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .toc li{position:relative}
 .toc .fold{position:absolute;left:3px;top:3px;width:12px;height:21px;
   display:grid;place-items:center;
-  background:none;border:0;padding:0;color:var(--muted);cursor:pointer}
+  background:none;border:0;padding:0;color:var(--muted)}
 .toc .lv3 > .fold{left:19px}
 .toc .fold:hover{color:var(--fg)}
 .toc .fold::before{content:"";width:0;height:0;margin-left:2px;
