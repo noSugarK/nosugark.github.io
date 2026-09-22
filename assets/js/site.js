@@ -863,6 +863,9 @@ if(isPost && prose) prose.addEventListener("click", e => {
   if(!lightbox){
     lightbox = document.createElement("dialog");
     lightbox.className = "lightbox";
+    /* 让弹层自己能接焦点。showModal() 默认把焦点丢给第一个可聚焦后代，
+       也就是左箭头，一打开就顶个焦点框；写 autofocus 不管用，Chrome 只认后代上的。 */
+    lightbox.tabIndex = -1;
     lightbox.innerHTML = '<img alt="">' +
       `<button type="button" class="lb-nav prev" aria-label="${esc(t({zh:"上一张", en:"Previous image"}))}"></button>` +
       `<button type="button" class="lb-nav next" aria-label="${esc(t({zh:"下一张", en:"Next image"}))}"></button>`;
@@ -882,4 +885,7 @@ if(isPost && prose) prose.addEventListener("click", e => {
   lightbox.querySelectorAll(".lb-nav").forEach(b => b.hidden = shots.length < 2);
   showShot(shots.indexOf(im));
   lightbox.showModal();
+  /* 焦点收回容器：箭头上的焦点框留给真的 Tab 过去的时候。
+     同步执行、绘制之前，不会闪一下。方向键照样冒泡到这儿，Tab 也照样能走到箭头。 */
+  lightbox.focus();
 });

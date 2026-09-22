@@ -516,6 +516,8 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
   border:0;padding:0;background:none;
   width:100vw;height:100dvh;max-width:none;max-height:none;cursor:var(--cur-zoom-out)}
 .lightbox[open]{display:grid;place-items:center}
+/* 容器接了焦点但它不是控件，没有"当前在哪"可指示，焦点框只会碍眼 */
+.lightbox:focus{outline:none}
 .lightbox::backdrop{background:rgb(0 0 0 / .82)}
 /* 给两侧切换带让路，否则窄屏上箭头会压在图上——它们在 DOM 里排在图后面，点哪都是箭头赢 */
 .lightbox img{max-width:calc(100vw - var(--lb-bar)*2 - 16px);max-height:92dvh;object-fit:contain;
