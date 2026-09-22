@@ -840,3 +840,24 @@ if(isPost) $$(".prose img").forEach(im => {
   fig.append(im, cap);
   p.replaceWith(fig);
 });
+
+/* 正文配图点开看大图：直接用原生 <dialog>——Esc 关闭、背景遮罩、焦点收进弹层、
+   置顶层全是浏览器给的，自己只要塞一张 img 进去，不引灯箱库。
+   整篇共用一个弹层，点第一张图时才建。 */
+let lightbox;
+if(isPost && prose) prose.addEventListener("click", e => {
+  const im = e.target.closest("img");
+  if(!im || im.closest("a")) return;   /* 带链接的图归链接，点了该跳转就跳转 */
+  if(!lightbox){
+    lightbox = document.createElement("dialog");
+    lightbox.className = "lightbox";
+    lightbox.innerHTML = '<img alt="">';
+    lightbox.addEventListener("click", () => lightbox.close());   /* 点哪都关，含遮罩 */
+    document.body.append(lightbox);
+  }
+  const big = lightbox.firstElementChild;
+  /* currentSrc 而不是 src：srcset 选中的那一张才是屏幕上正在看的 */
+  big.src = im.currentSrc || im.src;
+  big.alt = im.alt;
+  lightbox.showModal();
+});
