@@ -74,15 +74,18 @@ html[data-theme="dark"]{
   --cur:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 3L21.6 14.4L12.6 16.2L9 25.2Z' fill='%23E1261C' stroke='%2316161A' stroke-width='2.2' stroke-linejoin='miter'/%3E%3C/svg%3E") 2 2, auto;
   --cur-hit:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23E1261C' fill-opacity='0.3' stroke='%2316161A' stroke-width='2.5'/%3E%3C/svg%3E") 14 14, pointer;
   /* 放大镜 = 可点击的圆再加一道 +/−：同一个几何原形，只换里面的记号，
-     不另起一套形状。看大图和退出各一个，回退值给原生 zoom-in / zoom-out。 */
-  --cur-zoom:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23E1261C' fill-opacity='0.3' stroke='%2316161A' stroke-width='2.5'/%3E%3Cpath d='M14 10.5v7M10.5 14h7' fill='none' stroke='%2316161A' stroke-width='2.5' stroke-linecap='butt'/%3E%3C/svg%3E") 14 14, zoom-in;
-  --cur-zoom-out:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23E1261C' fill-opacity='0.3' stroke='%2316161A' stroke-width='2.5'/%3E%3Cpath d='M10.5 14h7' fill='none' stroke='%2316161A' stroke-width='2.5' stroke-linecap='butt'/%3E%3C/svg%3E") 14 14, zoom-out;
+     不另起一套形状。看大图和退出各一个，回退值给原生 zoom-in / zoom-out。
+     跟 --cur-hit 的唯一差别是圆实心、描边和记号翻成反差色：它只出现在图片上，
+     底下什么明暗都有，30% 填充压在深色照片上会整个消失，而图片也不像正文那样
+     需要透过光标看清底下。反转做不了——光标是系统位图，读不到底下的像素。 */
+  --cur-zoom:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23E1261C' stroke='%23F7F4EC' stroke-width='2.5'/%3E%3Cpath d='M14 10.5v7M10.5 14h7' fill='none' stroke='%23F7F4EC' stroke-width='2.5' stroke-linecap='butt'/%3E%3C/svg%3E") 14 14, zoom-in;
+  --cur-zoom-out:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23E1261C' stroke='%23F7F4EC' stroke-width='2.5'/%3E%3Cpath d='M10.5 14h7' fill='none' stroke='%23F7F4EC' stroke-width='2.5' stroke-linecap='butt'/%3E%3C/svg%3E") 14 14, zoom-out;
 }
 html[data-theme="dark"]{
   --cur:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 3L21.6 14.4L12.6 16.2L9 25.2Z' fill='%23F2C230' stroke='%23121214' stroke-width='2.2' stroke-linejoin='miter'/%3E%3C/svg%3E") 2 2, auto;
   --cur-hit:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23F2C230' fill-opacity='0.3' stroke='%23F2C230' stroke-width='2.5'/%3E%3C/svg%3E") 14 14, pointer;
-  --cur-zoom:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23F2C230' fill-opacity='0.3' stroke='%23F2C230' stroke-width='2.5'/%3E%3Cpath d='M14 10.5v7M10.5 14h7' fill='none' stroke='%23F2C230' stroke-width='2.5' stroke-linecap='butt'/%3E%3C/svg%3E") 14 14, zoom-in;
-  --cur-zoom-out:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23F2C230' fill-opacity='0.3' stroke='%23F2C230' stroke-width='2.5'/%3E%3Cpath d='M10.5 14h7' fill='none' stroke='%23F2C230' stroke-width='2.5' stroke-linecap='butt'/%3E%3C/svg%3E") 14 14, zoom-out;
+  --cur-zoom:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23F2C230' stroke='%23121214' stroke-width='2.5'/%3E%3Cpath d='M14 10.5v7M10.5 14h7' fill='none' stroke='%23121214' stroke-width='2.5' stroke-linecap='butt'/%3E%3C/svg%3E") 14 14, zoom-in;
+  --cur-zoom-out:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='8.5' fill='%23F2C230' stroke='%23121214' stroke-width='2.5'/%3E%3Cpath d='M10.5 14h7' fill='none' stroke='%23121214' stroke-width='2.5' stroke-linecap='butt'/%3E%3C/svg%3E") 14 14, zoom-out;
 }
 html{cursor:var(--cur)}
 a,button,summary,[role="button"]{cursor:var(--cur-hit)}
@@ -424,6 +427,9 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 /* margin-inline:auto：窗口不够宽、不走两栏时，剩余宽度均分到两侧，
    不再全堆在右边空出一大块 */
 .post{max-width:85ch;margin-inline:auto;padding-top:56px}
+/* 没生成目录的文章（标题少于两个）不留那条给侧栏的余量，直接铺满 wrap。
+   上限还是 .wrap 的 1080px，不会真的拉到屏幕边。 */
+.post:not(:has(.toc)){max-width:none}
 .post-title{font:var(--track) clamp(30px,5vw,46px)/1.1 var(--head);letter-spacing:-1.5px}
 .post-meta{font:600 12.5px var(--mono);color:var(--accent);letter-spacing:1.5px;margin-top:10px}
 /* 文章页标签也是链接：默认与元信息同色，下划线做可点提示 */
