@@ -506,12 +506,28 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
    dialog:not([open]){display:none}，关着的弹层会一直铺在页面上。 */
 .prose img{cursor:var(--cur-zoom)}
 .prose a img{cursor:var(--cur-hit)}     /* 带链接的图归链接，不放大 */
-.lightbox{border:0;padding:0;background:none;
+.lightbox{--lb-bar:clamp(52px,8vw,96px);   /* 左右切换带的宽度，图片留边也按它算 */
+  border:0;padding:0;background:none;
   width:100vw;height:100dvh;max-width:none;max-height:none;cursor:var(--cur-zoom-out)}
 .lightbox[open]{display:grid;place-items:center}
 .lightbox::backdrop{background:rgb(0 0 0 / .82)}
-.lightbox img{max-width:92vw;max-height:92dvh;object-fit:contain;
+/* 给两侧切换带让路，否则窄屏上箭头会压在图上——它们在 DOM 里排在图后面，点哪都是箭头赢 */
+.lightbox img{max-width:calc(100vw - var(--lb-bar)*2 - 16px);max-height:92dvh;object-fit:contain;
   border:var(--bd) solid var(--line);background:var(--paper)}
+.lightbox:has(.lb-nav[hidden]) img{max-width:92vw}   /* 只有一张时没有切换带，不用留边 */
+/* 左右切换：贴在遮罩两侧的整条竖带，图片宽度已经避开它们；图本身是关闭热区。
+   三角固定用浅色而不是 var()：遮罩两套主题下都是深的，跟着主题变反而会隐进背景。
+   别在这儿写 cursor，button 那条已经给了圆，写了只会更具体把它盖掉。 */
+.lightbox .lb-nav{position:absolute;top:0;bottom:0;width:var(--lb-bar);
+  display:grid;place-items:center;background:none;border:0;padding:0}
+.lightbox .lb-nav[hidden]{display:none}
+.lightbox .prev{left:0}
+.lightbox .next{right:0}
+.lightbox .lb-nav::before{content:"";width:0;height:0;opacity:.7;
+  border:11px solid transparent;border-right-color:#F7F4EC}
+.lightbox .next::before{border-right-color:transparent;border-left-color:#F7F4EC}
+.lightbox .lb-nav:hover::before,
+.lightbox .lb-nav:focus-visible::before{opacity:1}
 .prose table{width:100%;border-collapse:collapse;font-size:15px}
 .prose th,.prose td{border:1px solid var(--line);padding:8px 12px;text-align:left}
 .prose th{background:var(--paper);font-weight:700}

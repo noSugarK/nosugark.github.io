@@ -844,20 +844,42 @@ if(isPost) $$(".prose img").forEach(im => {
 /* 正文配图点开看大图：直接用原生 <dialog>——Esc 关闭、背景遮罩、焦点收进弹层、
    置顶层全是浏览器给的，自己只要塞一张 img 进去，不引灯箱库。
    整篇共用一个弹层，点第一张图时才建。 */
-let lightbox;
-if(isPost && prose) prose.addEventListener("click", e => {
-  const im = e.target.closest("img");
-  if(!im || im.closest("a")) return;   /* 带链接的图归链接，点了该跳转就跳转 */
-  if(!lightbox){
-    lightbox = document.createElement("dialog");
-    lightbox.className = "lightbox";
-    lightbox.innerHTML = '<img alt="">';
-    lightbox.addEventListener("click", () => lightbox.close());   /* 点哪都关，含遮罩 */
-    document.body.append(lightbox);
-  }
-  const big = lightbox.firstElementChild;
+let lightbox, shots = [], shotAt = 0;
+
+/* 切到第 i 张，取模绕回，首尾相接 */
+function showShot(i){
+  shotAt = (i + shots.length) % shots.length;
+  const im = shots[shotAt], big = lightbox.firstElementChild;
   /* currentSrc 而不是 src：srcset 选中的那一张才是屏幕上正在看的 */
   big.src = im.currentSrc || im.src;
   big.alt = im.alt;
+}
+
+if(isPost && prose) prose.addEventListener("click", e => {
+  const im = e.target.closest("img");
+  if(!im || im.closest("a")) return;   /* 带链接的图归链接，点了该跳转就跳转 */
+  /* 每次打开重新取一遍：文章里的图可能是懒加载或脚本后插的，建弹层时那一刻的快照会漏 */
+  shots = [...$$(".prose img")].filter(x => !x.closest("a"));   /* $$ 给的是 NodeList，没有 filter */
+  if(!lightbox){
+    lightbox = document.createElement("dialog");
+    lightbox.className = "lightbox";
+    lightbox.innerHTML = '<img alt="">' +
+      `<button type="button" class="lb-nav prev" aria-label="${esc(t({zh:"上一张", en:"Previous image"}))}"></button>` +
+      `<button type="button" class="lb-nav next" aria-label="${esc(t({zh:"下一张", en:"Next image"}))}"></button>`;
+    lightbox.addEventListener("click", e2 => {
+      const b = e2.target.closest(".lb-nav");
+      if(b) showShot(shotAt + (b.classList.contains("next") ? 1 : -1));
+      else lightbox.close();          /* 点图、点遮罩都关 */
+    });
+    /* 弹层是模态，焦点就在它里面，键盘事件必然冒泡到这儿 */
+    lightbox.addEventListener("keydown", e2 => {
+      if(e2.key === "ArrowRight") showShot(shotAt + 1);
+      else if(e2.key === "ArrowLeft") showShot(shotAt - 1);
+    });
+    document.body.append(lightbox);
+  }
+  /* 独苗一张就别摆左右钮了，两侧空白还能当关闭热区 */
+  lightbox.querySelectorAll(".lb-nav").forEach(b => b.hidden = shots.length < 2);
+  showShot(shots.indexOf(im));
   lightbox.showModal();
 });
