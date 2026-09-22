@@ -1,0 +1,40 @@
+#!/bin/sh
+# 图片体积守门。
+#
+# 装一次：git config core.hooksPath tools/hooks
+# 临时放行：git commit --no-verify        改上限：IMG_LIMIT_KB=800 git commit ...
+#
+# 量的是暂存区里那份 blob 的大小（git cat-file -s :path），不是工作区文件——
+# 工作区可能已经改过，提交进历史的是暂存的那一份。
+
+limit_kb=${IMG_LIMIT_KB:-500}
+
+# core.quotepath=false：中文文件名不被转义成 \344\270\255，下面的 cat-file 才找得到
+big=$(
+  git -c core.quotepath=false diff --cached --name-only --diff-filter=ACM |
+  while IFS= read -r f; do
+    case $(printf '%s' "$f" | tr 'A-Z' 'a-z') in
+      *.png|*.jpg|*.jpeg|*.gif|*.webp|*.bmp|*.tif|*.tiff) ;;
+      *) continue ;;
+    esac
+    size=$(git cat-file -s ":$f" 2>/dev/null) || continue
+    if [ "$size" -gt $((limit_kb * 1024)) ]; then
+      printf '  %6s KB  %s\n' "$((size / 1024))" "$f"
+    fi
+  done
+)
+
+[ -z "$big" ] && exit 0
+
+cat >&2 <<EOF
+提交被拦下：下面的图片超过 ${limit_kb} KB
+
+$big
+
+先压一遍：
+  python tools/img2webp.py <路径> --delete
+然后把文章里的引用改成 .webp，再重新 add / commit。
+
+确实要原样提交：git commit --no-verify
+EOF
+exit 1
