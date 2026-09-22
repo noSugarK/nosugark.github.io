@@ -524,6 +524,23 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 /* 当前项用常驻左边框换色来标，不改字重——字重一变文字宽度就变，整块会跟着跳。 */
 .toc a.on{color:var(--accent);border-left-color:var(--accent)}
 .toc .lv3 a{padding-left:27px;font-size:12px}   /* 层级用缩进表达 */
+.toc .lv4 a{padding-left:43px;font-size:12px;color:var(--muted);opacity:.85}
+/* ---- 折叠 ----
+   折叠钮绝对定位在缩进让出的空白里，不占 a 的流：否则每多一级都得重算 padding，
+   而且有钮 / 无钮的项会左右错开一截。 */
+.toc li{position:relative}
+.toc .fold{position:absolute;left:3px;top:3px;width:12px;height:21px;
+  display:grid;place-items:center;
+  background:none;border:0;padding:0;color:var(--muted);cursor:pointer}
+.toc .lv3 > .fold{left:19px}
+.toc .fold:hover{color:var(--fg)}
+.toc .fold::before{content:"";width:0;height:0;margin-left:2px;
+  border:4px solid transparent;border-left-color:currentColor}
+.toc li:not(.shut) > .fold::before{rotate:90deg;translate:-2px 2px}
+.toc li.shut > ul{display:none}
+@media (prefers-reduced-motion: no-preference){
+  .toc .fold::before{transition:rotate .15s var(--ease), translate .15s var(--ease)}
+}
 
 /* ===================== 动效 =====================
    全部原生 CSS / Web API，不引任何动画库。

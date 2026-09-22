@@ -376,16 +376,44 @@ function findInArticle(q){
 function buildToc(){
   const el = $("#toc");
   if(!el || !prose) return null;
-  const hs = [...prose.querySelectorAll("h2, h3")];
+  const hs = [...prose.querySelectorAll("h2, h3, h4")];
   if(hs.length < 2){ el.remove(); return null; }   /* 一两个标题不值得做目录 */
-  el.innerHTML = "<ul>" + hs.map((h, i) => {
+  /* 按级别嵌套成真正的树：栈顶保存「当前这一级往下挂的那个 ul」，
+     遇到同级或更浅的标题就把栈弹到合适的祖先。三级混排、跳级（h2 直接到 h4）都接得住。
+     用 lv2/lv3/lv4 而不是 h2/h3/h4：animate() 的 `main .h2` 会把目录项也当区块标题。
+     刻度在前、标签在后——面板向右滑出，露在屏幕内的是左边那一截。 */
+  const root = document.createElement("ul");
+  const stack = [{lv: 1, ul: root}];
+  hs.forEach((h, i) => {
     if(!h.id) h.id = "h-" + i;                     /* kramdown 一般会生成，这里兜底 */
-    /* 用 lv2/lv3 而不是 h2/h3：animate() 的 `main .h2` 会把目录项也当区块标题。
-       刻度在前、标签在后——面板向右滑出，露在屏幕内的是左边那一截。 */
-    return `<li class="lv${h.tagName[1]}">` +
-      `<a href="#${h.id}"><span class="tick"></span>` +
-      `<span class="label">${esc(h.textContent)}</span></a></li>`;
-  }).join("") + "</ul>";
+    const lv = +h.tagName[1];
+    while(stack.length > 1 && stack[stack.length - 1].lv >= lv) stack.pop();
+    const li = document.createElement("li");
+    li.className = "lv" + lv;
+    li.innerHTML = `<a href="#${h.id}"><span class="tick"></span>` +
+      `<span class="label">${esc(h.textContent)}</span></a><ul></ul>`;
+    stack[stack.length - 1].ul.appendChild(li);
+    stack.push({lv, ul: li.lastElementChild});
+  });
+  /* 有子项的才配折叠钮，并且默认收起：230px 的侧栏摊开三级会长得离谱。
+     当前读到哪一节由 syncToc 顺着祖先链展开，所以「收起」不会藏住正在读的内容。 */
+  root.querySelectorAll("li").forEach(li => {
+    if(li.lastElementChild.children.length){
+      li.classList.add("shut");
+      li.insertAdjacentHTML("afterbegin",
+        `<button class="fold" type="button" aria-expanded="false" aria-label="展开或折叠子目录"></button>`);
+    } else {
+      li.lastElementChild.remove();               /* 空 ul 不留 */
+    }
+  });
+  /* 委托一个 click 就够：折叠钮是 li 的兄弟而不是 a 的子节点，
+     点标题跳转和点钮开合天然不打架，不用 stopPropagation 那一套。 */
+  el.addEventListener("click", e => {
+    const b = e.target.closest(".fold");
+    if(!b) return;
+    b.setAttribute("aria-expanded", b.parentElement.classList.toggle("shut") ? "false" : "true");
+  });
+  el.appendChild(root);
   return {hs, links: [...el.querySelectorAll("a")]};
 }
 const TOC = buildToc();
@@ -407,6 +435,12 @@ function syncToc(){
   if(active === tocActive) return;   /* 小节没变就别动，省得每帧重排 */
   tocActive = active;
   TOC.links.forEach((a, i) => a.classList.toggle("on", i === active));
+  /* 当前项可能被收在某个折叠的祖先里，先顺着链展开再谈「滚进视野」 */
+  for(let li = TOC.links[active].closest("li"); li; li = li.parentElement.closest("li")){
+    li.classList.remove("shut");
+    const b = li.querySelector(":scope > .fold");
+    if(b) b.setAttribute("aria-expanded", "true");
+  }
   keepTocVisible(TOC.links[active]);
 }
 

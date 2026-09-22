@@ -7,7 +7,7 @@ layout: default
     {{ page.date | date: "%Y.%m.%d" }}{% for tag in page.tags %} · <a href="{{ '/blog/' | relative_url }}?tag={{ tag | url_encode | downcase }}">{{ tag }}</a>{% endfor %}
   </div>
   {%- comment -%}
-    目录由 JS 从 .prose 的 h2/h3 生成；标题少于两个就自己移除。
+    目录由 JS 从 .prose 的 h2/h3/h4 生成，按级别嵌套成可折叠的树；标题少于两个就自己移除。
     DOM 顺序固定为 标题 / 元信息 / 目录 / 正文 / 返回。
     ≥1120px 时 .post 变成两栏网格，把 .toc 放进右侧空列并设为 sticky；
     窄屏沿用同一份 DOM，.toc 落成正文上方的静态块。
