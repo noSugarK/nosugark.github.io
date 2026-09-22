@@ -11,7 +11,7 @@ mermaid: false
 
 ### Download/下载
 
-[![Windhawk下载](/assets/img/posts/windows-tools/windhawk-net.png)](https://ramensoftware.com/downloads/windhawk_setup.exe)
+[![Windhawk下载](/assets/img/posts/windows-tools/windhawk-net.webp)](https://ramensoftware.com/downloads/windhawk_setup.exe)
 
 ### Mod推荐
 
@@ -53,11 +53,11 @@ The modern, open source Flyout app for Windows 11. Media Flyouts, Taskbar Widget
 
 ### Download/下载
 
-![进入官网点击右上角Download](/assets/img/posts/windows-tools/FluentFlyout-download-1.png)
+![进入官网点击右上角Download](/assets/img/posts/windows-tools/FluentFlyout-download-1.webp)
 
-![下滑到Github Releases下方找到Manual Installation，点击下方的Download](/assets/img/posts/windows-tools/FluentFlyout-download-2.png)
+![下滑到Github Releases下方找到Manual Installation，点击下方的Download](/assets/img/posts/windows-tools/FluentFlyout-download-2.webp)
 
-[![在赞助下方找到No thanks, continue to download.](/assets/img/posts/windows-tools/FluentFlyout-download-3.png)](https://fluentflyout.com/files/latest/x64)
+[![在赞助下方找到No thanks, continue to download.](/assets/img/posts/windows-tools/FluentFlyout-download-3.webp)](https://fluentflyout.com/files/latest/x64)
 
 > [!note]
 > **安装步骤**
@@ -76,4 +76,4 @@ The modern, open source Flyout app for Windows 11. Media Flyouts, Taskbar Widget
 - 检查音乐软件**更新**。
   > 通常更新后就会显示了，如果还是没有显示请手动勾选下面设置。
 - 进入设置，打开SMTC。（不同音乐软件可能存在区别，这里演示的是网易云音乐）
-  ![](/assets/img/posts/windows-tools/CloudMusic.png)
+  ![](/assets/img/posts/windows-tools/CloudMusic.webp)
