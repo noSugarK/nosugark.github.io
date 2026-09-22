@@ -889,3 +889,135 @@ if(isPost && prose) prose.addEventListener("click", e => {
      同步执行、绘制之前，不会闪一下。方向键照样冒泡到这儿，Tab 也照样能走到箭头。 */
   lightbox.focus();
 });
+
+
+/* ---- hero 主名粒子汇聚 ----
+   离屏按 <b> 的字体画一遍 nosugark，逐像素取样当粒子的「家」，粒子飞进来落位后就常驻：
+   之后走弹簧回家 + 指针排斥，鼠标扫过去把字推散，离开再自己聚回来。
+   画面不再交还给真文字（那一下换人看着就是断的），真文字只是永远透明地垫在下面，
+   读屏、选中、搜索都照旧。
+   等 fonts.ready 再取样：字体没到就量，采到的是回退字形。 */
+if(heroName && MOTION && heroName.offsetWidth) document.fonts.ready.then(() => {
+  const PAD = 10;      /* 画布四周外扩：字形会溢出行盒，推散的粒子也要有地方去 */
+  const STEP = 3;      /* 取样步长，也就是粒子的间距 */
+  const R0 = 80;       /* 指针排斥半径 */
+  const text = heroName.textContent.toLowerCase();   /* 标题整体 text-transform:lowercase，取样要跟着 */
+  const cv = document.createElement("canvas");
+  const g = cv.getContext("2d");
+  const off = document.createElement("canvas").getContext("2d", {willReadFrequently:true});
+  const ease = t => 1 + 2.4 * --t * t * t + 1.4 * t * t;   /* back-out：末尾轻微过冲，落位有顿挫 */
+  let ps = [], W = 0, H = 0, K = [], END = 0;
+  let run = false, intro = true, born = 0, mx = -1e4, my = -1e4, moved = -1e9;
+
+  /* 深色下 --k1/--k2/--k3 全是同一个强调色，三色自然收敛成单色，不用在这儿分主题 */
+  function colors(){
+    const root = getComputedStyle(document.documentElement);
+    K = ["--k1","--k2","--k3"].map(v => root.getPropertyValue(v).trim() || "#E1261C");
+    for(const p of ps) p.c = K[p.k];
+  }
+
+  function build(){
+    const bw = heroName.offsetWidth, bh = heroName.offsetHeight;
+    if(!bw) return;
+    W = bw + PAD * 2; H = bh + PAD * 2;
+    const cs = getComputedStyle(heroName);
+    off.canvas.width = W; off.canvas.height = H;
+    /* 不用 cs.font：部分浏览器这个简写读出来是空串，拆开拼才稳 */
+    off.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize}/${cs.lineHeight} ${cs.fontFamily}`;
+    /* 字距不给的话整行会宽出十几像素；老浏览器忽略这个属性，只是略宽，不影响观感 */
+    off.letterSpacing = cs.letterSpacing;
+    const m = off.measureText(text), asc = m.fontBoundingBoxAscent, desc = m.fontBoundingBoxDescent;
+    /* 行盒里的基线：剩余行距上下均分，再往下落一个 ascent —— 跟 CSS 摆 inline 盒同一个算法 */
+    off.fillText(text, PAD, PAD + (bh - (asc + desc)) / 2 + asc);
+    const d = off.getImageData(0, 0, W, H).data;
+
+    const R = Math.hypot(W, H);
+    ps = [];
+    for(let y = 0; y < H; y += STEP) for(let x = 0; x < W; x += STEP){
+      if(d[(y * W + x) * 4 + 3] < 128) continue;
+      /* 起点压在画布内圈：飞得再远也只是被裁掉，看着像凭空冒出来 */
+      const a = Math.random() * Math.PI * 2, r = R * (.12 + Math.random() * .38);
+      ps.push({hx:x, hy:y, x, y, vx:0, vy:0,
+        sx: W / 2 + Math.cos(a) * r, sy: H / 2 + Math.sin(a) * r * .6,
+        /* 起飞时刻从左往右推，看着像有人在写；叠一点随机免得成一堵直墙 */
+        t0: 260 + x / W * 340 + Math.random() * 240,
+        dur: 760 + Math.random() * 420,
+        /* 固定算式而不是 Math.random()：每次刷新配色一致，随机反而像渲染出错 */
+        k: (x * 5 + y * 7) / STEP % 3 | 0});
+    }
+    if(!ps.length) return;                    /* 一个点都没采到就别接管，真文字留着 */
+    ps.sort((a, b) => a.k - b.k);             /* 同色连着画，一帧只切两次 fillStyle */
+    colors();
+    END = Math.max(0, ...ps.map(p => p.t0 + p.dur));
+
+    /* 宽屏开屏时 <b> 被 name-grow 放大到 1.3 倍，backing store 先多备这一档，缩放时才不糊 */
+    const dpr = Math.min(devicePixelRatio || 1, 2) * 1.35;
+    cv.width = W * dpr; cv.height = H * dpr;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if(!cv.isConnected){ heroName.classList.add("pb"); heroName.append(cv); }
+    wake();
+  }
+
+  function wake(){ if(!run){ run = true; requestAnimationFrame(step); } }
+
+  function step(now){
+    born = born || now;
+    const t = now - born;
+    if(intro && t > END) intro = false;
+    /* 指针离开时浏览器不一定给最后一个事件（比如直接划出窗口），超时兜底把它挪远，
+       不然排斥力一直挂着，粒子回不了家，循环也就永远停不下来 */
+    if(now - moved > 200){ mx = my = -1e4; }
+    g.clearRect(0, 0, W, H);
+    let live = false, last = "";
+    for(const p of ps){
+      let s = 2.6, a = 1;
+      if(intro){
+        const k = Math.min(Math.max((t - p.t0) / p.dur, 0), 1);
+        if(k <= 0) continue;
+        const e = ease(k);
+        p.x = p.sx + (p.hx - p.sx) * e; p.y = p.sy + (p.hy - p.sy) * e;
+        s = 4.4 - 1.8 * k;                    /* 边飞边收小，落定正好是字形的颗粒度 */
+        a = Math.min(k * 4, 1);
+        live = true;
+      }else{
+        const dx = p.x - mx, dy = p.y - my, q = dx * dx + dy * dy;
+        if(q < R0 * R0){                      /* 越靠近指针推得越狠 */
+          const dist = Math.sqrt(q) || .001, f = (1 - dist / R0) * 4.4;
+          p.vx += dx / dist * f; p.vy += dy / dist * f;
+        }
+        /* 弹簧回家：加速度朝原位，再统一衰减，省掉一套碰撞参数 */
+        p.vx = (p.vx + (p.hx - p.x) * .055) * .86;
+        p.vy = (p.vy + (p.hy - p.y) * .055) * .86;
+        p.x += p.vx; p.y += p.vy;
+        if(Math.abs(p.vx) + Math.abs(p.vy) > .05) live = true;
+      }
+      if(p.c !== last) g.fillStyle = last = p.c;
+      g.globalAlpha = a;
+      g.fillRect(p.x - s / 2, p.y - s / 2, s, s);
+    }
+    /* 全体归位、指针也不在附近，就把循环停掉；再有动静由 pointermove 唤醒。
+       入场阶段必须显式续上：最早的粒子也要 260ms 才起飞，头几帧一个都没动。 */
+    if(intro || live || mx > -1e3) requestAnimationFrame(step);
+    else run = false;
+  }
+
+  /* 指针只在画布附近才唤醒循环；远处不管，正在跑的循环自己会停 */
+  addEventListener("pointermove", e => {
+    const r = cv.getBoundingClientRect();
+    if(!r.width) return;
+    /* 按 rect 换算而不是直接减：宽屏开屏时 <b> 正被放大 1.3 倍，rect 已经把缩放算进去了 */
+    const x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height;
+    if(x < -R0 || x > W + R0 || y < -R0 || y > H + R0) return;
+    mx = x; my = y; moved = performance.now();
+    wake();
+  }, {passive:true});
+
+  /* 字号跟着 vw 走，换尺寸得重新取样；重建后粒子直接摆在家里，不再放一遍入场 */
+  let rt;
+  addEventListener("resize", () => { clearTimeout(rt); intro = false; rt = setTimeout(build, 200); });
+  /* 切主题只是换色，重画一帧就够 */
+  new MutationObserver(() => { colors(); wake(); })
+    .observe(document.documentElement, {attributeFilter:["data-theme"]});
+
+  build();
+});

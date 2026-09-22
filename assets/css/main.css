@@ -784,6 +784,15 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
   animation:rip .45s var(--ease) both}
 .filters button.on::after,.tgl:hover::after,.gh::after{background:currentColor}
 
+/* ---- hero 主名粒子汇聚 ----
+   画布挂在 <b> 内部：行盒多大它就多大，宽屏那套 name-grow 缩放也带着它一起走，
+   不用再同步一遍尺寸。inset 负值是给字形溢出和被推散的粒子留的外圈。
+   画布常驻，真文字（.pb）只是永远透明地垫在下面——节点一直在，读屏、选中、页内搜索照旧。
+   pointer-events:none 让画布不挡住下面的文字选中，排斥用的指针位置走 window 上的监听。 */
+.hero h1 b{position:relative}
+.hero h1 b.pb{display:inline-block;color:transparent}
+.hero h1 b>canvas{position:absolute;inset:-10px;pointer-events:none}
+
 /* ---- hero 主名逐字落位 ----
    只拆 <b>：它不随语言变，不会被 setLang 的 textContent 重写掉。
    延迟从标题行擦入落定之后起算（+260ms），两段动画不打架。 */
