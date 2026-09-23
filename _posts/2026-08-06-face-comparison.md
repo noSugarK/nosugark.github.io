@@ -26,8 +26,8 @@ InsightFace 是一个基于深度学习的人脸分析项目，核心功能包�
 
 > [!tip]
 >
-> InsightFace Python 库代码采用 **MIT License**，
-> 但官方提供的预训练模型具有独立的模型许可。
+> InsightFace Python 库代码采用 **MIT License**，但官方提供的预训练模型具有独立的模型许可。
+> 
 > 官方 Model Zoo 中提供的[预训练模型](https://github.com/deepinsight/insightface/releases/latest)目前仅限`非商业研究用途`。
 > 如果用于商业产品，应当进一步确认对应模型的授权情况，或使用拥有商业授权的模型。
 
@@ -45,7 +45,7 @@ conda activate insightface
 ### 2.2 安装依赖包
 
 ```bash
-pip install insightface opencv-python
+pip install insightface opencv-python numpy chromadb
 ```
 
 如果需要使用 ONNX Runtime：
@@ -58,6 +58,8 @@ pip install insightface opencv-python
     ```bash
     pip install onnxruntime-gpu
     ```
+
+> 下载较慢可以使用清华源镜像站安装：`pip install insightface -i https://pypi.tuna.tsinghua.edu.cn/simple`
 
 可以通过以下代码检查：
 
