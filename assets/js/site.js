@@ -351,6 +351,8 @@ function jumpTo(i){
   if(!hits.length) return;
   cur = (i + hits.length) % hits.length;
   paintHits();
+  /* 命中点在折叠的代码块里：先展开，否则它被裁掉，跳过去什么也看不见 */
+  hits[cur].startContainer.parentElement?.closest(".codeblock.collapsed")?.querySelector(".fold").click();
   const r = hits[cur].getBoundingClientRect();
   scrollBy({top: r.top - innerHeight * 0.32, behavior: MOTION ? "smooth" : "auto"});
 }
@@ -533,6 +535,8 @@ function enhanceCode(){
     const label = s => { fold.dataset.zh = s.zh; fold.dataset.en = s.en; fold.textContent = t(s); };
     label(more);
     wrap.classList.add("collapsed");
+    /* 横向滚动条高度 = offsetHeight - clientHeight（pre 无边框）；窗口变宽变窄时滚动条会出现/消失，所以用观察器跟着量 */
+    new ResizeObserver(() => pre.style.setProperty("--sb", pre.offsetHeight - pre.clientHeight + "px")).observe(pre);
     fold.addEventListener("click", () => {
       const c = wrap.classList.toggle("collapsed");
       label(c ? more : less);

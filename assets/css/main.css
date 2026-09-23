@@ -395,8 +395,9 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 
 /* 右栏分组列表 */
 .tl-list{display:grid;gap:16px}
-.yr,.mo,.post-row{scroll-margin-top:104px}
-.mo{display:grid;gap:16px}
+/* .mo 必须限定在列表里：Rouge 给八进制数字打的也是 span.mo */
+.yr,.tl-list .mo,.post-row{scroll-margin-top:104px}
+.tl-list .mo{display:grid;gap:16px}
 .yr+.yr .yr-head,.yr .mo:first-child .mo-head{margin-top:0}
 .yr-head{display:flex;align-items:center;gap:12px;margin:28px 0 2px;
   font:var(--track) clamp(26px,4vw,34px)/1 var(--head);letter-spacing:-1px;color:var(--fg)}
@@ -460,9 +461,12 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .codeblock .copy:hover{border-color:var(--accent);color:var(--accent)}
 .codeblock .copy.done{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 .codeblock pre{margin:0;padding:10px 14px;border:0;background:transparent}
-/* 长代码折叠：pre 限高 20 行（em 基于 pre 的 13px），底部渐隐，下方整宽展开按钮 */
-.codeblock.collapsed pre{max-height:calc(20 * 1.45em + 10px);overflow-y:hidden;
-  -webkit-mask-image:linear-gradient(#000 75%,transparent);mask-image:linear-gradient(#000 75%,transparent)}
+/* 长代码折叠：pre 限高 20 行（em 基于 pre 的 13px；border-box 下要加上下两份 10px 内边距），
+   底部渐隐，下方整宽展开按钮。--sb 是横向滚动条高度（JS 量），遮罩在那一截恢复不透明，
+   不然滚动条也被一起淡没了。 */
+.codeblock.collapsed pre{max-height:calc(20 * 1.45em + 20px);overflow-y:hidden;
+  --fade:linear-gradient(#000 75%,transparent calc(100% - var(--sb,0px)),#000 calc(100% - var(--sb,0px)));
+  -webkit-mask-image:var(--fade);mask-image:var(--fade)}
 .codeblock .fold{display:block;width:100%;padding:4px;font:700 11px var(--font);
   background:transparent;color:var(--muted);border:0;border-top:var(--bd) solid var(--line);
   transition:color .2s ease}
