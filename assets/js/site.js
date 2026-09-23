@@ -520,6 +520,26 @@ function enhanceCode(){
 
     head.append(tag, btn);
     wrap.append(head, pre);
+
+    /* 超过 FOLD 行先折叠，底部整宽按钮展开/收起。复制按钮照旧拿完整代码。 */
+    const FOLD = 20;
+    const n = (code || pre).textContent.replace(/\n$/, "").split("\n").length;
+    if(n <= FOLD) return;
+    const more = {zh:`展开全部（共 ${n} 行）`, en:`Show all (${n} lines)`};
+    const less = {zh:"收起", en:"Collapse"};
+    const fold = document.createElement("button");
+    fold.type = "button";
+    fold.className = "fold";
+    const label = s => { fold.dataset.zh = s.zh; fold.dataset.en = s.en; fold.textContent = t(s); };
+    label(more);
+    wrap.classList.add("collapsed");
+    fold.addEventListener("click", () => {
+      const c = wrap.classList.toggle("collapsed");
+      label(c ? more : less);
+      /* 收起时如果代码块顶部已滚出视口，拉回来，免得停在一片正文中间 */
+      if(c) wrap.scrollIntoView({block:"nearest"});
+    });
+    wrap.append(fold);
   });
 }
 

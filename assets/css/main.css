@@ -445,22 +445,46 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
   border:1px solid var(--line);padding:1px 5px}
 .prose pre{background:var(--paper);border:var(--bd) solid var(--line);padding:18px;
   overflow-x:auto}
-.prose pre code{border:0;padding:0;background:transparent;font-size:13.5px;line-height:1.7}
-/* JS 把 pre 包进 .codeblock，头部放语言名 + 复制按钮。
+.prose pre code{border:0;padding:0;background:transparent;font-size:inherit;line-height:inherit}
+.prose pre{font-size:13px;line-height:1.45}
+/* JS 把 pre 包进 .codeblock，语言名 + 复制按钮悬浮在右上角，不单独占一行。
    边框和底色上移到外壳，pre 自身清空，避免和 .prose pre 叠成两层框。
    不设上边距：真实 kramdown 会把 pre 再套一层 .language-x 外层 div，
    那层作为 .prose 直接子元素已带 .prose>*+* 间距，这里再加就翻倍。 */
-.codeblock{background:var(--paper);border:var(--bd) solid var(--line)}
-.codeblock-head{display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:6px 8px 6px 14px;border-bottom:var(--bd) solid var(--line)}
-.codeblock .lang{font:700 11px var(--mono);letter-spacing:1.2px;text-transform:uppercase;
+.codeblock{position:relative;background:var(--paper);border:var(--bd) solid var(--line)}
+/* 悬浮条平时隐藏，免得盖住首行末尾；鼠标移入或键盘聚焦时出现。触屏没有 hover，常显。 */
+.codeblock-head{position:absolute;top:6px;right:6px;z-index:1;display:flex;align-items:center;gap:8px;
+  padding:2px 2px 2px 8px;background:var(--paper);opacity:0;transition:opacity .15s ease}
+.codeblock:hover .codeblock-head,.codeblock:focus-within .codeblock-head{opacity:1}
+@media (hover:none){.codeblock-head{opacity:1}}
+.codeblock .lang{font:700 10px var(--mono);letter-spacing:1.2px;text-transform:uppercase;
   color:var(--muted)}
-.codeblock .copy{font:700 11px var(--font);padding:3px 10px;
+.codeblock .copy{font:700 10px var(--font);padding:1px 8px;
   background:var(--bg);color:var(--fg);border:var(--bd) solid var(--line);
   transition:border-color .2s ease,color .2s ease,background .2s ease}
 .codeblock .copy:hover{border-color:var(--accent);color:var(--accent)}
 .codeblock .copy.done{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
-.codeblock pre{margin:0;padding:16px 18px;border:0;background:transparent}
+.codeblock pre{margin:0;padding:10px 14px;border:0;background:transparent}
+/* 长代码折叠：pre 限高 20 行（em 基于 pre 的 13px），底部渐隐，下方整宽展开按钮 */
+.codeblock.collapsed pre{max-height:calc(20 * 1.45em + 10px);overflow-y:hidden;
+  -webkit-mask-image:linear-gradient(#000 75%,transparent);mask-image:linear-gradient(#000 75%,transparent)}
+.codeblock .fold{display:block;width:100%;padding:4px;font:700 11px var(--font);
+  background:transparent;color:var(--muted);border:0;border-top:var(--bd) solid var(--line);
+  transition:color .2s ease}
+.codeblock .fold:hover{color:var(--accent)}
+/* Rouge 语法高亮：Jekyll 已输出 token span，这里只上色。
+   复用提示框那套 --c-* 变量，明暗两套自动跟随主题。 */
+.highlight .c,.highlight .c1,.highlight .cm,.highlight .cs,.highlight .cd{color:var(--muted);font-style:italic}
+.highlight .cp,.highlight .cpf{color:var(--muted)}
+.highlight .k,.highlight .kd,.highlight .kn,.highlight .kp,.highlight .kr,.highlight .kv,.highlight .ow{color:var(--c-note);font-weight:700}
+.highlight .kc,.highlight .m,.highlight .mi,.highlight .mf,.highlight .mh,.highlight .mo,.highlight .mb,.highlight .il,.highlight .ss{color:var(--c-caution)}
+.highlight .s,.highlight .s1,.highlight .s2,.highlight .sb,.highlight .sc,.highlight .sd,.highlight .sh,.highlight .sx,.highlight .dl{color:var(--c-tip)}
+.highlight .se,.highlight .si,.highlight .sr{color:var(--c-warn)}
+.highlight .nf,.highlight .fm,.highlight .nc,.highlight .nn{color:var(--c-imp)}
+.highlight .kt,.highlight .nb,.highlight .bp,.highlight .nd,.highlight .na,.highlight .nt,.highlight .nv,.highlight .vi{color:var(--c-warn)}
+.highlight .gd{color:var(--c-caution)}
+.highlight .gi{color:var(--c-tip)}
+.highlight .err{color:inherit;background:none}
 /* mermaid 画布：清掉 .prose pre 的框和底色。
    ponytail: 深色模式直接反色，省一套主题重渲染；
    多彩图表颜色会走形，真需要精确配色再改成监听 data-theme 重跑 mermaid.run。 */
