@@ -7,9 +7,9 @@ math: false
 mermaid: false
 ---
 
-InsightFace 是一个开源的人脸分析工具箱，提供人脸检测、人脸识别、人脸关键点、人脸属性分析等能力。
+[InsightFace](https://github.com/deepinsight/insightface) 是一个开源的人脸分析工具箱，提供人脸检测、人脸识别、人脸关键点、人脸属性分析等能力。
 
-本教程以 Python 为例，介绍如何快速使用 InsightFace 完成人脸检测与人脸识别。
+本文以 Python 为例，介绍如何快速使用 InsightFace 完成人脸检测与人脸识别。
 
 ## 1. InsightFace 是什么？
 
@@ -28,7 +28,7 @@ InsightFace 是一个基于深度学习的人脸分析项目，核心功能包�
 >
 > InsightFace Python 库代码采用 **MIT License**，
 > 但官方提供的预训练模型具有独立的模型许可。
-> 官方 Model Zoo 中提供的预训练模型目前仅限`非商业研究用途`。
+> 官方 Model Zoo 中提供的[预训练模型](https://github.com/deepinsight/insightface/releases/latest)目前仅限`非商业研究用途`。
 > 如果用于商业产品，应当进一步确认对应模型的授权情况，或使用拥有商业授权的模型。
 
 ## 2. 安装
