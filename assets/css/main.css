@@ -484,6 +484,7 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .highlight .kt,.highlight .nb,.highlight .bp,.highlight .nd,.highlight .na,.highlight .nt,.highlight .nv,.highlight .vi{color:var(--c-warn)}
 .highlight .gd{color:var(--c-caution)}
 .highlight .gi{color:var(--c-tip)}
+.highlight .gh,.highlight .gu,.highlight .gs{color:var(--c-note);font-weight:700}
 .highlight .err{color:inherit;background:none}
 /* mermaid 画布：清掉 .prose pre 的框和底色。
    ponytail: 深色模式直接反色，省一套主题重渲染；
