@@ -148,11 +148,6 @@ a{color:inherit}
   transition:transform .4s var(--ease)}
 html[data-theme="dark"] .half{transform:rotate(180deg)}
 
-.gh{display:flex;align-items:center;gap:6px;text-decoration:none;font:700 13px var(--font);
-  padding:9px 14px;background:var(--fg);color:var(--bg);border:var(--bd) solid var(--fg);
-  transition:transform .2s var(--ease),opacity .2s}
-.gh:hover{transform:translateY(-2px);opacity:.88}
-
 /* ---- 区块标题：几何标记按 圆→方→四分之一圆 / 蓝→红→黄 循环 ---- */
 main > section{padding:64px 0 0}
 .h2{position:relative;display:flex;flex-direction:column;gap:4px;width:fit-content;
@@ -678,7 +673,6 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .mag:hover{transform:translate(var(--mx,0px),calc(var(--my,0px) + var(--lift,0px)))}
 .mag:active{transform:translate(var(--mx,0px),var(--my,0px)) scale(.94)}
 .skill.mag{--lift:-3px}
-.gh.mag{--lift:-2px}
 
 /* ---- 卡片顶边的强调块跟着指针横向走 ----
    悬停不只是换个边框色，而是有块能被指针推着走的实心色块。
@@ -801,13 +795,13 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
    包豪斯不要圆，扩的是实心方块（aspect-ratio 保方），溢出部分被按钮裁回硬边。
    --rx/--ry 是点击点，由 JS 在 pointerdown 时写入。
    高亮 / 悬停态的按钮底色本身就是强调色，涟漪改用当前字色，否则看不见。 */
-.filters button,.tgl,.gh{position:relative;overflow:hidden}
+.filters button,.tgl{position:relative;overflow:hidden}
 @keyframes rip{from{transform:translate(-50%,-50%) scale(0);opacity:.45}
                  to{transform:translate(-50%,-50%) scale(1);opacity:0}}
 .rip::after{content:"";position:absolute;left:var(--rx);top:var(--ry);
   width:260%;aspect-ratio:1;background:var(--accent);pointer-events:none;
   animation:rip .45s var(--ease) both}
-.filters button.on::after,.tgl:hover::after,.gh::after{background:currentColor}
+.filters button.on::after,.tgl:hover::after{background:currentColor}
 
 /* ---- hero 主名粒子汇聚 ----
    画布挂在 <b> 内部：行盒多大它就多大，宽屏那套 name-grow 缩放也带着它一起走，

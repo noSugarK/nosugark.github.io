@@ -657,7 +657,7 @@ addEventListener("scroll", ()=>{
    这里只写 CSS 变量，位移交给合成层，不碰布局。
    .mag 挂上就不摘：摘掉会把 transition 一起摘掉，指针移开时元素会瞬回原位。 */
 if(MOTION) addEventListener("pointermove", e => {
-  const el = e.target.closest?.(".filters button,.tgl,.skill,.stack a,.gh");
+  const el = e.target.closest?.(".filters button,.tgl,.skill,.stack a");
   if(el){
     const r = el.getBoundingClientRect();
     el.classList.add("mag");
@@ -677,7 +677,7 @@ if(MOTION) addEventListener("pointermove", e => {
 /* 点击涟漪：动画靠重挂类名重启，中间那次 offsetWidth 是必要的强制重排，
    不然同一个按钮连点第二下不会重新播放。 */
 if(MOTION) addEventListener("pointerdown", e => {
-  const el = e.target.closest?.(".filters button,.tgl,.gh");
+  const el = e.target.closest?.(".filters button,.tgl");
   if(!el) return;
   const r = el.getBoundingClientRect();
   el.style.setProperty("--rx", (e.clientX - r.left).toFixed(1) + "px");
