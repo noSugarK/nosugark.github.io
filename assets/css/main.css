@@ -552,6 +552,13 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .lightbox pre.mermaid svg{display:block;height:auto;aspect-ratio:var(--r);
   width:min(calc(100vw - var(--lb-bar)*2 - 16px),calc(92dvh * var(--r)))}
 .lightbox:has(.lb-nav[hidden]) pre.mermaid svg{width:min(92vw,calc(92dvh * var(--r)))}
+/* 滚轮 / 双指缩放、拖动平移：原点放左上角，JS 的换算按这个来；
+   拖的时候别顺手选中 SVG 里的字。touch-action 挂整个弹层：
+   手指落在遮罩上捏合，也不能让浏览器抢去缩放整个页面 */
+.lightbox{user-select:none;overflow:hidden;touch-action:none}   /* 放大后溢出会让 dialog 自己滚起来，位移全乱 */
+.lightbox>:first-child{transform-origin:0 0}
+.lightbox>.zoomed{cursor:grab}
+.lightbox>.zoomed:active{cursor:grabbing}
 /* 左右切换：贴在遮罩两侧的整条竖带，图片宽度已经避开它们；图本身是关闭热区。
    三角固定用浅色而不是 var()：遮罩两套主题下都是深的，跟着主题变反而会隐进背景。
    别在这儿写 cursor，button 那条已经给了圆，写了只会更具体把它盖掉。 */

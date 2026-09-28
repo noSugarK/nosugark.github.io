@@ -869,6 +869,32 @@ if(isPost) $$(".prose img").forEach(im => {
    置顶层全是浏览器给的，自己只要塞一张 img 进去，不引灯箱库。
    整篇共用一个弹层，点第一张图时才建。 */
 let lightbox, shots = [], shotAt = 0;
+/* 大图的缩放和平移：zs 倍率，tx/ty 位移。transform-origin 设在左上角，
+   以指针为中心缩放时只要一行比例换算，不用管元素中心在哪 */
+let zs = 1, tx = 0, ty = 0, drag = null, pinch = null, dragged = false;
+const pts = new Map();   /* 按在弹层上的手指 / 鼠标，pointerId -> 坐标 */
+const zoomApply = () => {
+  const big = lightbox.firstElementChild;
+  big.style.transform = zs > 1 ? `translate(${tx}px,${ty}px) scale(${zs})` : "";
+  big.classList.toggle("zoomed", zs > 1);
+};
+/* 以屏幕点 (cx,cy) 为不动点缩放到 s：该点到元素左上角的距离 d 缩放前后要落在同一屏幕位置，
+   于是位移补上 d·(1 − 新倍率/旧倍率)。回到 1 倍就归位，免得缩回来图歪在一边。 */
+function zoomAt(cx, cy, s){
+  const r = lightbox.firstElementChild.getBoundingClientRect();
+  s = Math.min(8, Math.max(1, s));
+  if(s === 1){ tx = ty = 0; }
+  else{ tx += (cx - r.left) * (1 - s / zs); ty += (cy - r.top) * (1 - s / zs); }
+  zs = s;
+  zoomApply();
+}
+/* 两指的间距和中点 */
+function pinchOf(){
+  const [a, b] = [...pts.values()];
+  return {d: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2};
+}
+/* 从某个点开始单指拖动；只有放大了才有得拖 */
+const dragFrom = p => drag = zs > 1 ? {x: p.x - tx, y: p.y - ty, x0: p.x, y0: p.y} : null;
 
 /* 能放大的：不带链接的图，和已经画完的 mermaid（还是源码文本时没得看） */
 const isShot = x => x.tagName === "IMG" ? !x.closest("a") : !!x.querySelector("svg");
@@ -891,7 +917,9 @@ function showShot(i){
     svg.style.maxWidth = "none";
     if(vb && vb.height) svg.style.setProperty("--r", vb.width / vb.height);
   }
+  big.draggable = false;     /* 不然拖动会拖出浏览器原生的图片幽灵 */
   lightbox.firstElementChild.replaceWith(big);
+  zs = 1; tx = ty = 0;       /* 换一张从原大小看起，新元素本来就没 transform */
 }
 
 if(isPost && prose) prose.addEventListener("click", e => {
@@ -909,6 +937,7 @@ if(isPost && prose) prose.addEventListener("click", e => {
       `<button type="button" class="lb-nav prev" aria-label="${esc(t({zh:"上一张", en:"Previous image"}))}"></button>` +
       `<button type="button" class="lb-nav next" aria-label="${esc(t({zh:"下一张", en:"Next image"}))}"></button>`;
     lightbox.addEventListener("click", e2 => {
+      if(dragged){ dragged = false; return; }   /* 拖完松手也会补一个 click，别当成关闭 */
       const b = e2.target.closest(".lb-nav");
       if(b) showShot(shotAt + (b.classList.contains("next") ? 1 : -1));
       else lightbox.close();          /* 点图、点遮罩都关 */
@@ -918,6 +947,49 @@ if(isPost && prose) prose.addEventListener("click", e => {
       if(e2.key === "ArrowRight") showShot(shotAt + 1);
       else if(e2.key === "ArrowLeft") showShot(shotAt - 1);
     });
+    /* 滚轮缩放，以指针所在点为中心。exp 让鼠标一格和触控板细碎的 delta 都顺滑；
+       触控板双指捏合在浏览器里也是 ctrlKey 的 wheel，一并接住。 */
+    lightbox.addEventListener("wheel", e2 => {
+      e2.preventDefault();
+      zoomAt(e2.clientX, e2.clientY, zs * Math.exp(-e2.deltaY * .002));
+    }, {passive:false});
+    /* 单指 / 鼠标：放大后拖动平移；挪过几像素才算拖，手抖的单击还是关闭。
+       双指：捏合缩放，以两指中点为中心，中点挪动顺带平移。
+       鼠标、触屏都走 pointer 事件，一套代码。 */
+    lightbox.addEventListener("pointerdown", e2 => {
+      if(e2.button || e2.target.closest(".lb-nav")) return;
+      const p = {x: e2.clientX, y: e2.clientY};
+      pts.set(e2.pointerId, p);
+      if(pts.size === 1){ dragged = false; dragFrom(p); }
+      else if(pts.size === 2){ drag = null; pinch = pinchOf(); dragged = true; }
+      /* 放最后：指针已失效时它会抛错，别连累上面的状态 */
+      lightbox.setPointerCapture(e2.pointerId);
+    });
+    lightbox.addEventListener("pointermove", e2 => {
+      const p = pts.get(e2.pointerId);
+      if(!p) return;
+      p.x = e2.clientX; p.y = e2.clientY;
+      if(pinch && pts.size >= 2){
+        /* 先按上一帧的中点缩放（zoomAt 读的是 DOM 上现在的位置），再补中点的位移；
+           缩回 1 倍时 zoomAt 已经归位，就不再平移 */
+        const now = pinchOf();
+        zoomAt(pinch.x, pinch.y, zs * now.d / pinch.d);
+        if(zs > 1){ tx += now.x - pinch.x; ty += now.y - pinch.y; zoomApply(); }
+        pinch = now;
+      }else if(drag){
+        if(Math.abs(p.x - drag.x0) + Math.abs(p.y - drag.y0) > 4) dragged = true;
+        tx = p.x - drag.x; ty = p.y - drag.y;
+        zoomApply();
+      }
+    });
+    /* 抬起一根手指：捏合结束，剩下那根接着拖，不用抬起来重按 */
+    const lift = e2 => {
+      pts.delete(e2.pointerId);
+      pinch = null;
+      drag = pts.size === 1 ? dragFrom([...pts.values()][0]) : null;
+    };
+    lightbox.addEventListener("pointerup", lift);
+    lightbox.addEventListener("pointercancel", lift);
     document.body.append(lightbox);
   }
   /* 独苗一张就别摆左右钮了，两侧空白还能当关闭热区 */
