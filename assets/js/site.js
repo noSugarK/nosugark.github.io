@@ -870,20 +870,35 @@ if(isPost) $$(".prose img").forEach(im => {
    整篇共用一个弹层，点第一张图时才建。 */
 let lightbox, shots = [], shotAt = 0;
 
+/* 能放大的：不带链接的图，和已经画完的 mermaid（还是源码文本时没得看） */
+const isShot = x => x.tagName === "IMG" ? !x.closest("a") : !!x.querySelector("svg");
+
 /* 切到第 i 张，取模绕回，首尾相接 */
 function showShot(i){
   shotAt = (i + shots.length) % shots.length;
-  const im = shots[shotAt], big = lightbox.firstElementChild;
-  /* currentSrc 而不是 src：srcset 选中的那一张才是屏幕上正在看的 */
-  big.src = im.currentSrc || im.src;
-  big.alt = im.alt;
+  const im = shots[shotAt];
+  let big;
+  if(im.tagName === "IMG"){
+    big = document.createElement("img");
+    /* currentSrc 而不是 src：srcset 选中的那一张才是屏幕上正在看的 */
+    big.src = im.currentSrc || im.src;
+    big.alt = im.alt;
+  }else{
+    /* mermaid 是内联 SVG，没有 src 可借，整块克隆过去；
+       去掉 mermaid 写死的 max-width，宽高比交给 CSS 按 viewBox 撑满屏幕 */
+    big = im.cloneNode(true);
+    const svg = big.querySelector("svg"), vb = svg.viewBox.baseVal;
+    svg.style.maxWidth = "none";
+    if(vb && vb.height) svg.style.setProperty("--r", vb.width / vb.height);
+  }
+  lightbox.firstElementChild.replaceWith(big);
 }
 
 if(isPost && prose) prose.addEventListener("click", e => {
-  const im = e.target.closest("img");
-  if(!im || im.closest("a")) return;   /* 带链接的图归链接，点了该跳转就跳转 */
+  const im = e.target.closest("img, pre.mermaid");
+  if(!im || !isShot(im)) return;   /* 带链接的图归链接，点了该跳转就跳转 */
   /* 每次打开重新取一遍：文章里的图可能是懒加载或脚本后插的，建弹层时那一刻的快照会漏 */
-  shots = [...$$(".prose img")].filter(x => !x.closest("a"));   /* $$ 给的是 NodeList，没有 filter */
+  shots = [...$$(".prose img, .prose pre.mermaid")].filter(isShot);   /* $$ 给的是 NodeList，没有 filter */
   if(!lightbox){
     lightbox = document.createElement("dialog");
     lightbox.className = "lightbox";

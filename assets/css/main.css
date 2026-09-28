@@ -96,7 +96,7 @@ input,textarea,select,.search{cursor:text}
 @media (forced-colors: active){
   html{cursor:auto}
   a,button,summary,[role="button"]{cursor:pointer}
-  .prose img{cursor:zoom-in}
+  .prose img,.prose pre.mermaid:has(svg){cursor:zoom-in}
   .lightbox{cursor:zoom-out}
 }
 
@@ -489,7 +489,8 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
    ponytail: 深色模式直接反色，省一套主题重渲染；
    多彩图表颜色会走形，真需要精确配色再改成监听 data-theme 重跑 mermaid.run。 */
 .prose pre.mermaid{border:0;background:transparent;padding:0;text-align:center;line-height:normal}
-[data-theme="dark"] .prose pre.mermaid{filter:invert(1) hue-rotate(180deg)}
+/* 反色挂在 svg 上而不是 pre：灯箱里的克隆 pre 要铺底色，底色不能跟着反 */
+[data-theme="dark"] pre.mermaid svg{filter:invert(1) hue-rotate(180deg)}
 /* 引用块：细灰竖条 + 灰字小一号。
    原来是 8px 强调色粗杠，和 .prose h2 的竖杠一模一样，扫一眼分不出是引用还是标题。 */
 .prose blockquote{border-left:3px solid var(--line);padding-left:16px;
@@ -531,7 +532,7 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
    原生 <dialog>：Esc、遮罩、焦点、置顶层都由浏览器负责，这里只管尺寸和配色。
    display 必须挂在 [open] 上——写在 .lightbox 上会盖掉 UA 的
    dialog:not([open]){display:none}，关着的弹层会一直铺在页面上。 */
-.prose img{cursor:var(--cur-zoom)}
+.prose img,.prose pre.mermaid:has(svg){cursor:var(--cur-zoom)}
 .prose a img{cursor:var(--cur-hit)}     /* 带链接的图归链接，不放大 */
 .lightbox{--lb-bar:clamp(52px,8vw,96px);   /* 左右切换带的宽度，图片留边也按它算 */
   border:0;padding:0;background:none;
@@ -544,6 +545,13 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .lightbox img{max-width:calc(100vw - var(--lb-bar)*2 - 16px);max-height:92dvh;object-fit:contain;
   border:var(--bd) solid var(--line);background:var(--paper)}
 .lightbox:has(.lb-nav[hidden]) img{max-width:92vw}   /* 只有一张时没有切换带，不用留边 */
+/* mermaid 克隆：内联 SVG 没有固有尺寸，按 JS 从 viewBox 算出的 --r 宽高比，
+   宽度取"横向可用宽"和"92dvh 高对应的宽"里小的那个，等效 img 的 contain */
+.lightbox pre.mermaid{margin:0;padding:0;line-height:normal;
+  border:var(--bd) solid var(--line);background:var(--paper)}
+.lightbox pre.mermaid svg{display:block;height:auto;aspect-ratio:var(--r);
+  width:min(calc(100vw - var(--lb-bar)*2 - 16px),calc(92dvh * var(--r)))}
+.lightbox:has(.lb-nav[hidden]) pre.mermaid svg{width:min(92vw,calc(92dvh * var(--r)))}
 /* 左右切换：贴在遮罩两侧的整条竖带，图片宽度已经避开它们；图本身是关闭热区。
    三角固定用浅色而不是 var()：遮罩两套主题下都是深的，跟着主题变反而会隐进背景。
    别在这儿写 cursor，button 那条已经给了圆，写了只会更具体把它盖掉。 */
