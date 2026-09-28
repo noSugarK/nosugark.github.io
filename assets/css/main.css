@@ -195,11 +195,11 @@ html[data-theme="dark"] .hero-art i{background:transparent;border-color:var(--ac
   animation:cue-in .6s var(--ease) both 1.5s}
 .cue i{position:absolute;left:-4px;width:10px;height:10px;background:var(--accent);
   animation:cue-run 2.1s var(--ease) infinite 1.9s}
-.hero h1{font:var(--track) clamp(40px,7vw,68px)/.98 var(--head);letter-spacing:-2px}
+/* 下边距给主名的下伸部（g 的尾巴）留地方：行高 .98 兜不住它，宽屏开屏时主名
+   还会以底边为原点放大 1.3 倍、字母歪斜，尾巴会一路压到下面的标签上 */
+.hero h1{font:var(--track) clamp(40px,7vw,68px)/.98 var(--head);letter-spacing:-2px;margin-bottom:.4em}
 /* 主名比引子大一档；em 跟着 h1 的 clamp 走，窄屏宽屏一个比例 */
 .hero h1 b{color:var(--accent);font-size:1.5em}
-/* 屏幕上主名下面只留名字：标签和简介只给打印的简历用 */
-@media screen{ #tags,#bio{display:none} }
 .tag{display:inline-block;font:600 12px var(--mono);border:var(--bd) solid var(--line);
   padding:4px 10px;margin:6px 6px 0 0}
 .hero p{margin-top:20px;font-size:16.5px;color:var(--muted);max-width:50ch}
@@ -965,6 +965,7 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
     padding:0 0 7px;border-bottom:1.5px solid #000}
   .hero h1{font-size:30px;line-height:1.05;letter-spacing:-.6px}
   .hero h1 b{font-size:inherit}   /* 纸上抬头维持 30px，别被屏幕那档 1.5em 撑大 */
+  .hero h1{margin-bottom:0}       /* 纸上主名不歪不放大，不用给尾巴留边 */
   #tags{margin-top:3px!important}
   .tag{border:0;padding:0;margin:0;font-size:10px}
   .tag+.tag::before{content:" · "}

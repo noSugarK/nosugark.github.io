@@ -7,9 +7,8 @@ const BIO = {
   en:"CS graduate, now doing technical support at Chuangshou Technology. I build Django + Vue web systems, Tauri and PySide6 desktop apps, and work on vision models and LLM integration. ICPC provincial silver, Lanqiao Cup national 2nd prize."
 };
 const TAGS = [
-  {zh:"全栈开发",en:"Full-stack"},{zh:"计算机视觉",en:"Computer Vision"},
-  {zh:"大模型接入",en:"LLM Integration"},{zh:"算法竞赛",en:"Competitive Programming"},
-  "Python / C++"
+  {zh:"大模型应用",en:"LLM Apps"},"AI Agent",{zh:"计算机视觉",en:"Computer Vision"},
+  {zh:"全栈开发",en:"Full-stack"},"Python / C++"
 ];
 const FACTS = [
   [{zh:"出生",en:"BORN"},   "2004.05"],
