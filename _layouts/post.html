@@ -21,7 +21,7 @@ layout: default
 </article>
 
 {%- comment -%}
-  公式和流程图都是按需加载：front matter 里写 math: true / mermaid: true
+  公式、流程图和数据图都是按需加载：front matter 里写 math: true / mermaid: true / plotly: true
   才会吐出下面的 script，没写的文章一字节不多拉。
   放在 .prose 之后，所以脚本跑的时候正文 DOM 已经在了。
 {%- endcomment -%}
@@ -52,4 +52,35 @@ document.querySelectorAll(".prose code.language-mermaid").forEach(c => {
 mermaid.initialize({startOnLoad:false, securityLevel:"strict", fontFamily:"inherit"});
 mermaid.run({querySelector:".prose pre.mermaid"});
 </script>
+{%- endif %}
+
+{%- if page.plotly %}
+<script>
+/* ```plotly 代码块里写 JSON：{"data":[…],"layout":{…}}，就是 Plotly.newPlot 的后两个参数。
+   这段同步执行、早于 site.js，先把块换成空 div；JSON 写错的块原样留着，控制台报错。
+   ponytail: 用的 basic 包（scatter / bar / pie，约 1MB），要热力图、3D 再换 plotly.js-dist-min。 */
+document.querySelectorAll(".prose code.language-plotly").forEach(c => {
+  try{
+    const d = document.createElement("div");
+    d.className = "plotly-chart";
+    d.spec = JSON.parse(c.textContent);
+    c.closest("pre").replaceWith(d);
+  }catch(e){ console.error("plotly 块 JSON 解析失败", e); }
+});
+/* 底色透明、字色和网格线取站点变量，切深浅色时重设一遍——不像 mermaid 那样反色，数据配色不能走形 */
+function drawPlotly(){
+  const charts = document.querySelectorAll(".plotly-chart");
+  const look = () => {
+    const s = getComputedStyle(document.documentElement), g = s.getPropertyValue("--muted").trim() + "40";
+    return {paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)",
+      font:{family:getComputedStyle(document.body).fontFamily, color:s.getPropertyValue("--fg").trim()},
+      "xaxis.gridcolor":g, "yaxis.gridcolor":g, "xaxis.zerolinecolor":g, "yaxis.zerolinecolor":g};
+  };
+  charts.forEach(d => Plotly.newPlot(d, d.spec.data, d.spec.layout, {responsive:true, displaylogo:false})
+    .then(() => Plotly.relayout(d, look())));
+  new MutationObserver(() => charts.forEach(d => Plotly.relayout(d, look())))
+    .observe(document.documentElement, {attributeFilter:["data-theme"]});
+}
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/plotly.js-basic-dist-min@3.7.0/plotly-basic.min.js" onload="drawPlotly()"></script>
 {%- endif %}

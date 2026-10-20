@@ -1,10 +1,11 @@
 ---
 layout: post
-title: 渲染自检：图片、公式、流程图
-description: 一页把图注、MathJax、mermaid 和代码块全跑一遍，改完样式拿它对一眼。
+title: 渲染自检：图片、公式、流程图、数据图
+description: 一页把图注、MathJax、mermaid、Plotly 和代码块全跑一遍，改完样式拿它对一眼。
 tags: [站点, 测试]
 math: true
 mermaid: true
+plotly: true
 ---
 
 这篇不讲内容，只做自检。改完 `main.css` 或 `site.js` 之后打开它，下面每一节都应该
@@ -56,6 +57,30 @@ graph TD
 **应该看到**：一张真的流程图，而不是代码块；它头上**不该**有语言角标和复制按钮
 （`enhanceCode` 对 mermaid 块做了跳过）。深色模式下整张图会被反色处理。
 
+## 数据图
+
+`plotly: true` 才加载。代码块的语言标成 `plotly`，内容写 JSON，`data` 和 `layout`
+就是 `Plotly.newPlot` 的两个参数：
+
+```plotly
+{
+  "data": [
+    {"type": "bar", "name": "构建耗时 (s)", "x": ["周一", "周二", "周三", "周四", "周五"], "y": [42, 38, 51, 35, 33]},
+    {"type": "scatter", "mode": "lines+markers", "name": "文章数", "x": ["周一", "周二", "周三", "周四", "周五"], "y": [12, 13, 13, 15, 16], "yaxis": "y2"}
+  ],
+  "layout": {
+    "height": 320,
+    "margin": {"t": 20, "r": 40, "b": 40, "l": 40},
+    "yaxis2": {"overlaying": "y", "side": "right", "showgrid": false},
+    "legend": {"orientation": "h", "y": -0.2}
+  }
+}
+```
+
+**应该看到**：柱状图叠折线、左右两根纵轴，悬停有数值提示，右上角有工具栏但没有 Plotly 标志；
+同样**不该**有语言角标和复制按钮。底色透明，切到深色模式后文字和网格线跟着变浅，
+柱子和折线颜色不变（不走 mermaid 的反色）。窗口拉窄，图跟着缩。
+
 ## 代码块
 
 普通代码块不受影响，角标和复制按钮照旧：
@@ -74,6 +99,7 @@ def fib(n):
 |---|---|---|
 | `math: true` | front matter | `$$` 原样显示成源码 |
 | `mermaid: true` | front matter | 流程图退化成普通代码块 |
+| `plotly: true` | front matter | 数据图退化成普通 JSON 代码块 |
 
 > 普通引用块：细灰竖条，灰字，比正文小一号。
 

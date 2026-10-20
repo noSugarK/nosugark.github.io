@@ -489,8 +489,8 @@ function enhanceCode(){
       (((code ? code.className : "") + " " + (host ? host.className : ""))
         .match(/language-([\w-]+)/) || [])[1] || "";
 
-    /* mermaid 块由 post.html 里的渲染脚本接管，不包成带复制按钮的代码块 */
-    if(lang === "mermaid") return;
+    /* mermaid / plotly 块由 post.html 里的渲染脚本接管，不包成带复制按钮的代码块 */
+    if(lang === "mermaid" || lang === "plotly") return;
 
     const wrap = document.createElement("div");
     wrap.className = "codeblock";
