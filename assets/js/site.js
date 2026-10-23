@@ -811,6 +811,8 @@ initTagbar();
 syncToc();
 syncTimeline();
 enhanceCode();
+/* kramdown 给 - [ ] 生成的复选框带 disabled，读者点不动；放开当清单用，刷新即复原 */
+document.querySelectorAll(".task-list-item-checkbox").forEach(c => c.disabled = false);
 
 /* 提示块：GitHub 的 > [!NOTE] 语法 kramdown 不认，原样留在 <blockquote> 第一段开头。
    在这儿把标记摘掉、补图标和标签、打上 .callout + data-callout，配色全在 CSS 里。

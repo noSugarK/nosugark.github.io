@@ -499,6 +499,11 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .prose blockquote{border-left:3px solid var(--line);padding-left:16px;
   color:var(--muted);font-size:.93em}
 .prose blockquote>*+*,.prose .callout details>*+*{margin-top:.8em}
+/* - [ ] 任务列表：去掉圆点，用原生复选框染强调色；勾上后整行划掉 */
+.prose .task-list{list-style:none;padding-left:4px}
+.task-list-item-checkbox{width:16px;height:16px;margin-right:10px;vertical-align:-2px;
+  accent-color:var(--accent);cursor:pointer}
+.task-list-item:has(:checked){color:var(--muted);text-decoration:line-through}
 /* GitHub 的 > [!NOTE] 语法 kramdown 不认，由 site.js 摘掉首行标记后打上 .callout。
    竖条 / 标签 / 图标 / 淡底共用 --cl，换类型只换这一个变量。
    类型写在 data-callout 上而不是类名里：note / tip 这种词太通用，
