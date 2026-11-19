@@ -14,6 +14,10 @@
   容易误判成"代码没生效"。site.time 每次构建都变。
 {%- endcomment -%}
 <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+{%- if page.motion_lab %}
+<link rel="stylesheet" href="{{ '/assets/css/motion-lab.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+<script type="module" src="{{ '/assets/js/motion-lab.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+{%- endif %}
 <script>
 /* 在首帧之前定好主题，否则深色用户会先闪一下白屏。
    localStorage 在隐私模式下会抛异常，所以整段包在 try 里。 */
