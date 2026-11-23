@@ -112,24 +112,27 @@ document.documentElement.classList.add("boot");
 <div class="sk-page" data-sk="{% if page.url == '/' %}home{% elsif page.url == '/blog/' %}blog{% else %}post{% endif %}" aria-hidden="true">
   {%- if page.url == '/' -%}
   <div class="hero-s">
-    <div class="gap">
-      <i class="sk" style="--w:52%;--h:52px"></i>
-      <div class="chips">
-        <i class="sk inl" style="--w:96px;--h:26px"></i><i class="sk inl" style="--w:112px;--h:26px"></i>
-        <i class="sk inl" style="--w:88px;--h:26px"></i><i class="sk inl" style="--w:104px;--h:26px"></i>
+    <div class="intro-s">
+      <div class="gap" style="gap:8px">
+        <i class="sk greet"></i><i class="sk name"></i>
       </div>
-      <div class="gap" style="gap:9px;margin-top:10px">
-        <i class="sk" style="--w:92%"></i><i class="sk" style="--w:84%"></i><i class="sk" style="--w:61%"></i>
+      <div class="chips">
+        <i class="sk inl" style="--w:88px;--h:28px"></i><i class="sk inl" style="--w:78px;--h:28px"></i>
+        <i class="sk inl" style="--w:92px;--h:28px"></i><i class="sk inl" style="--w:82px;--h:28px"></i>
+        <i class="sk inl" style="--w:96px;--h:28px"></i>
+      </div>
+      <div class="gap" style="gap:12px;max-width:76%">
+        <i class="sk bio-line"></i><i class="sk bio-line"></i><i class="sk bio-line"></i><i class="sk bio-line" style="--w:42%"></i>
       </div>
     </div>
-    <div class="facts-s">
-      <i class="sk" style="--w:64px;--h:11px"></i><i class="sk" style="--w:150px;--h:13px"></i>
-      <i class="sk" style="--w:58px;--h:11px"></i><i class="sk" style="--w:180px;--h:13px"></i>
-      <i class="sk" style="--w:72px;--h:11px"></i><i class="sk" style="--w:130px;--h:13px"></i>
-      <i class="sk" style="--w:66px;--h:11px"></i><i class="sk" style="--w:160px;--h:13px"></i>
-      <i class="sk" style="--w:60px;--h:11px"></i><i class="sk" style="--w:140px;--h:13px"></i>
-      <i class="sk" style="--w:78px;--h:11px"></i><i class="sk" style="--w:120px;--h:13px"></i>
-      <i class="sk" style="--w:56px;--h:11px"></i><i class="sk" style="--w:110px;--h:13px"></i>
+    <div class="facts-s sk-box">
+      <i class="sk" style="--w:52px;--h:11px"></i><i class="sk" style="--w:130px;--h:13px"></i>
+      <i class="sk" style="--w:46px;--h:11px"></i><i class="sk" style="--w:160px;--h:13px"></i>
+      <i class="sk" style="--w:58px;--h:11px"></i><i class="sk" style="--w:118px;--h:13px"></i>
+      <i class="sk" style="--w:52px;--h:11px"></i><i class="sk" style="--w:142px;--h:13px"></i>
+      <i class="sk" style="--w:48px;--h:11px"></i><i class="sk" style="--w:126px;--h:13px"></i>
+      <i class="sk" style="--w:62px;--h:11px"></i><i class="sk" style="--w:108px;--h:13px"></i>
+      <i class="sk" style="--w:44px;--h:11px"></i><i class="sk" style="--w:98px;--h:13px"></i>
     </div>
   </div>
   <div class="sec-s">
