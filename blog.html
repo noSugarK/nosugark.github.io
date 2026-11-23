@@ -26,8 +26,8 @@ permalink: /blog/
     {%- comment -%}
       右侧列表：按 年 → 月 分组（change-detection 循环，site.posts 已按日期倒序）。
       每篇卡片带 id + data-date，供时间轴生成日节点并锚点滚动。
-      搜索目标仍塞进 data-s（标题+标签+摘要+正文），?tag= 用 data-tags 精确匹配。
-      ponytail: 正文全文内联在列表页，超过约 50 篇改成 search.json + 懒加载。
+      搜索目标塞进 data-s（标题+标签+摘要，轻量）；正文全文在 search.json，
+      首次输入时由 site.js 按需拉取。?tag= 用 data-tags 精确匹配。
     {%- endcomment -%}
     <div class="tl-list" id="post-list">
       {%- assign prevY = nil -%}
@@ -51,7 +51,7 @@ permalink: /blog/
         {%- endif -%}
 
         {%- capture haystack -%}
-          {{ post.title }} {{ post.tags | join: " " }} {{ post.description }} {{ post.content | strip_html }}
+          {{ post.title }} {{ post.tags | join: " " }} {{ post.description }}
         {%- endcapture -%}
         <article class="card post-row" id="p-{{ post.slug }}"
                  data-date="{{ post.date | date: '%Y-%m-%d' }}"

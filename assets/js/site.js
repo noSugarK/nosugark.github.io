@@ -351,6 +351,23 @@ SYS_DARK.addEventListener?.("change", () => {
 });
 
 /* ===================== 搜索 + 筛选 ===================== */
+/* 正文全文不在列表页 HTML 里，单独放 search.json；首次有查询才拉取一次。
+   这样首屏不必下载所有文章正文（约 300KB），搜正文的能力照旧。
+   拉取失败就退回只搜 data-s（标题/标签/摘要），不让搜索整体失效。 */
+let fullIndex = null, fullIndexPending = null;
+function ensureFullIndex(){
+  if(!isList || fullIndex || fullIndexPending) return;
+  const url = document.querySelector('meta[name="search-index"]')?.content || "/search.json";
+  fullIndexPending = fetch(url)
+    .then(r => { if(!r.ok) throw new Error("search index " + r.status); return r.json(); })
+    .then(items => {
+      fullIndex = new Map(items.map(x => [x.id, (x.s || "").toLowerCase()]));
+      filter();                       // 索引到手后用正文重筛一次
+    })
+    .catch(() => { /* 拉取失败：保持 null，搜索退回轻量字段 */ })
+    .finally(() => { fullIndexPending = null; });
+}
+
 /* 过滤所有带 data-s 的块，整段空了就折叠。
    首页筛简历卡片、列表页筛文章行，同一套代码。 */
 function filter(){
@@ -362,7 +379,9 @@ function filter(){
     const okC = !el.dataset.cat || cat === "全部" || el.dataset.cat === cat;
     const rowTags = (el.dataset.tags || "").toLowerCase().split(",");
     const okT = !activeTags.length || activeTags.every(tag => rowTags.includes(tag));
-    const okQ = !q || el.dataset.s.toLowerCase().includes(q);
+    const inLight = el.dataset.s.toLowerCase().includes(q);
+    const inFull = !!(fullIndex && (fullIndex.get(el.id) || "").includes(q));
+    const okQ = !q || inLight || inFull;
     el.hidden = !(okC && okT && okQ);
   });
   /* 整段空了就折叠。也作用于经历分组，否则筛掉全部条目后只剩一个光秃秃的组标题。
@@ -815,7 +834,9 @@ $("#theme")?.addEventListener("click", toggleTheme);
 /* 打字要即时反馈，不走 View Transitions */
 $("#q")?.addEventListener("input", ()=>{
   const q = $("#q").value.trim().toLowerCase();
-  if(isPost) findInArticle(q); else filter();
+  if(isPost){ findInArticle(q); return; }
+  if(q && isList) ensureFullIndex();   /* 首次有查询才拉正文索引 */
+  filter();
 });
 /* 文章页：↵ 下一个，⇧↵ 上一个，Esc 清空 */
 $("#q")?.addEventListener("keydown", e=>{

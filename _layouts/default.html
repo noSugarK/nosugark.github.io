@@ -9,6 +9,8 @@
 {%- comment -%} 和顶栏的品牌块一个调子：红底白“n”。SVG 一个文件就够，不用导多尺寸 {%- endcomment -%}
 <link rel="icon" type="image/svg+xml" href="{{ '/assets/favicon.svg' | relative_url }}">
 <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ '/feed.xml' | relative_url }}">
+{%- comment -%} 全文搜索索引地址：交给 relative_url，子路径部署也不会错 {%- endcomment -%}
+<meta name="search-index" content="{{ '/search.json' | relative_url }}">
 {%- comment -%}
   带上构建时间做指纹：不加的话改完样式 / 脚本，浏览器还在跑缓存里的旧文件，
   容易误判成"代码没生效"。site.time 每次构建都变。

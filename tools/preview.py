@@ -8,7 +8,9 @@
 """
 import argparse
 import datetime as dt
+import html as html_mod
 import http.server
+import json
 import os
 import re
 import shutil
@@ -172,6 +174,18 @@ def build():
     posts, by_slug = collect()
     for post in posts:
         post["content"] = render_markdown(post, by_slug)
+
+    # search.json：正文全文单独成册，列表页只在首次搜索时才拉取
+    search_items = []
+    for post in posts:
+        hay = " ".join([
+            str(post["title"]),
+            " ".join(str(x) for x in (post["tags"] or [])),
+            str(post["description"] or ""),
+            html_mod.unescape(re.sub(r"<[^>]+>", " ", post["content"])),
+        ])
+        search_items.append({"id": "p-" + post["slug"], "s": " ".join(hay.split())})
+    write_html("search.json", json.dumps(search_items, ensure_ascii=False))
 
     base_ctx = {
         "site": dict(SITE, posts=posts, time=dt.datetime.now()),

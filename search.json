@@ -1,0 +1,6 @@
+---
+layout: null
+---
+[{% for post in site.posts %}{% unless forloop.first %},{% endunless %}
+  {"id":"p-{{ post.slug }}","s":{{ post.title | append: " " | append: post.description | append: " " | append: post.content | strip_html | strip_newlines | normalize_whitespace | jsonify }}}
+{% endfor %}]
