@@ -1,0 +1,41 @@
+/* 共用动画下拉框样式（assets/js/animated-select.js）：深浅色跟随站点变量。
+   由 demo_lab 或 motion_lab 开关按需加载。宽度随内容自适应，圆角。 */
+.aselect {
+  position: relative; flex: 0 1 auto; min-width: 0;
+  --aselect-radius: 6px;
+}
+.aselect-trigger {
+  display: flex; align-items: center; gap: 6px; min-height: 34px; padding: 4px 10px;
+  max-width: 100%;
+  border: var(--bd) solid var(--line); border-radius: var(--aselect-radius);
+  background: var(--paper); color: var(--fg);
+}
+.aselect-trigger:hover { background: var(--accent); color: var(--accent-fg); }
+.aselect-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aselect-arrow { display: inline-flex; flex: 0 0 auto; transition: transform .18s var(--ease, ease); }
+.aselect.open .aselect-arrow { transform: rotate(180deg); }
+.aselect-menu {
+  position: absolute; z-index: 20; top: calc(100% + 4px); left: 0;
+  width: max-content; min-width: 100%; max-width: min(90vw, 30ch);
+  padding: 4px; border: var(--bd) solid var(--line); border-radius: var(--aselect-radius);
+  background: var(--paper); box-shadow: 0 6px 18px rgb(0 0 0 / .18);
+  transform-origin: top left;
+  animation: aselect-in .18s cubic-bezier(.34, 1.26, .4, 1);
+}
+.aselect-menu[hidden] { display: none; }
+@keyframes aselect-in { from { opacity: 0; transform: scaleY(.85) translateY(-4px); } to { opacity: 1; transform: none; } }
+.aselect-option {
+  display: flex; align-items: center; gap: 6px; padding: 5px 8px;
+  white-space: normal; overflow-wrap: anywhere; cursor: pointer;
+  border-radius: calc(var(--aselect-radius) - 2px);
+}
+.aselect-option:hover, .aselect-option:focus-visible { background: color-mix(in srgb, var(--accent) 14%, transparent); outline: none; }
+.aselect-check { display: inline-flex; flex: 0 0 14px; width: 14px; }
+.aselect-check svg path { stroke-dasharray: 16; stroke-dashoffset: 16; }
+.aselect-option.selected .aselect-check svg path { animation: aselect-check .3s ease-out forwards; }
+@keyframes aselect-check { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .aselect-menu { animation: none; }
+  .aselect-check svg path { stroke-dashoffset: 0; }
+  .aselect-option.selected { font-weight: 700; }
+}

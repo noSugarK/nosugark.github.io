@@ -14,9 +14,17 @@
   容易误判成"代码没生效"。site.time 每次构建都变。
 {%- endcomment -%}
 <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+{%- if page.motion_lab or page.demo_lab %}
+<link rel="stylesheet" href="{{ '/assets/css/demo-card.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+<link rel="stylesheet" href="{{ '/assets/css/animated-select.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+{%- endif %}
 {%- if page.motion_lab %}
 <link rel="stylesheet" href="{{ '/assets/css/motion-lab.css' | relative_url }}?v={{ site.time | date: '%s' }}">
 <script type="module" src="{{ '/assets/js/motion-lab.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+{%- endif %}
+{%- if page.demo_lab %}
+<link rel="stylesheet" href="{{ '/assets/css/demo-lab.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+<script type="module" src="{{ '/assets/js/demo-lab.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 {%- endif %}
 <script>
 /* 在首帧之前定好主题，否则深色用户会先闪一下白屏。

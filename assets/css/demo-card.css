@@ -1,0 +1,80 @@
+/* 可交互卡片骨架（demo-lab 与 motion-lab 共用）：沿用站点变量与包豪斯粗边框。
+   顶部一行：示例/代码 Tab + 中间切换控件 + 放大图标；底部一行：控件 + 状态。 */
+.demo {
+  border: var(--bd) solid var(--line);
+  background: var(--paper);
+  font-size: .92em;
+  line-height: 1.5;
+}
+.demo[hidden] { display: none; }
+.demo :is(button, input, select) { font: inherit; color: var(--fg); }
+.demo :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.demo-head {
+  display: flex; align-items: center; min-height: 40px;
+  border-bottom: var(--bd) solid var(--line);
+}
+.demo-title {
+  flex: 1; min-width: 0; text-align: center; font-weight: 700; letter-spacing: .02em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.demo-title::before {
+  content: ''; display: inline-block; width: 10px; height: 10px;
+  margin-right: 8px; background: var(--accent); vertical-align: -1px;
+}
+/* 顶部中间的切换控件（标题位）：占满中间、内容居中 */
+.demo-slot { flex: 1; min-width: 0; display: flex; justify-content: center; }
+.demo-actions { display: flex; flex: 0 0 auto; padding-right: 6px; }
+.demo-icon {
+  display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0;
+  border: 0; background: transparent; color: var(--fg);
+}
+.demo-icon:hover { color: var(--accent); }
+.demo-btn {
+  min-height: 34px; padding: 4px 12px;
+  border: var(--bd) solid var(--line); background: var(--paper); color: var(--fg);
+}
+.demo-btn:hover { background: var(--accent); color: var(--accent-fg); }
+.demo-btn[aria-pressed="true"] { background: var(--fg); color: var(--paper); }
+.demo-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.demo-tabs { display: flex; flex: 0 0 auto; gap: 0; height: 100%; }
+.demo-tab {
+  min-height: 38px; padding: 4px 16px; font-weight: 700;
+  border: 0; border-right: var(--bd) solid var(--line);
+  background: color-mix(in srgb, var(--paper), var(--line) 5%); color: var(--muted);
+}
+.demo-tab[aria-selected="true"] { background: var(--fg); color: var(--paper); }
+.demo-view[hidden] { display: none; }
+.demo-view .codeblock { margin: 0; border: 0; }
+.demo-view .codeblock .codeblock-head { border-top: 0; }
+
+/* 底部一行：控件在左，状态注释靠右 */
+.demo-foot {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 8px 12px; border-top: 1px solid var(--line);
+}
+.demo-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.demo-controls label { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.demo-controls input[type="range"] { min-width: 120px; max-width: 280px; accent-color: var(--accent); }
+.demo-status {
+  margin: 0 0 0 auto; flex: 0 1 auto; text-align: right;
+  font-size: .85em; color: var(--muted); overflow-wrap: anywhere;
+}
+.demo-status:empty { display: none; }
+
+/* 放大灯箱：铺满视口、深色遮罩、点遮罩或 Esc 关闭 */
+.demo-dialog {
+  border: 0; padding: 0; background: none; color: var(--fg);
+  width: 100vw; height: 100dvh; max-width: none; max-height: none;
+  overflow: hidden; user-select: none;
+}
+.demo-dialog[open] { display: grid; place-items: center; }
+.demo-dialog:focus { outline: none; }
+.demo-dialog::backdrop { background: rgb(0 0 0 / .82); }
+.demo-dialog .demo {
+  width: min(94vw, 1100px); max-height: 94dvh; overflow: auto;
+  border: var(--bd) solid var(--line); background: var(--paper);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / .2);
+}
+.demo-dialog .demo-head { position: sticky; top: 0; z-index: 1; }
