@@ -182,8 +182,11 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 
 let lang = store.get("lang") === "en" ? "en" : "zh";
 let cat = "全部";
-/* 列表页 ?tag= 参数：点文章标签跳过来时按标签精确过滤。空串=不过滤。 */
-const activeTag = (new URLSearchParams(location.search).get("tag") || "").toLowerCase();
+/* 列表页 ?tag= 支持多个标签（逗号分隔），按「同时含有」过滤；空数组=不过滤。 */
+const activeTags = [...new Set(
+  (new URLSearchParams(location.search).get("tag") || "")
+    .split(",").map(s => s.trim().toLowerCase()).filter(Boolean)
+)];
 const t = o => (o && typeof o === "object" && !Array.isArray(o)) ? o[lang] : o;
 /* 搜索索引双语拼接，中英文都能搜到 */
 const idx = (...xs) => esc(xs.flat(9)
@@ -272,6 +275,8 @@ function setLang(l){
   if(lb){ lb.textContent = t(UI.langBtn); lb.title = lb.ariaLabel = t(UI.langTip); }
   syncTheme();
   renderResume();
+  syncTagLinks();        /* 先给标签链接记下原始 tag，气泡才能取到原样大小写 */
+  initTagbar();          /* 气泡上的「移除 / 清空」文案跟着语言走 */
 }
 
 /* ===================== 三态主题（照 animate-ui ThemeToggler）=====================
@@ -355,7 +360,8 @@ function filter(){
   const all = [...$$("[data-s]")];
   all.forEach(el=>{
     const okC = !el.dataset.cat || cat === "全部" || el.dataset.cat === cat;
-    const okT = !activeTag || (el.dataset.tags || "").toLowerCase().split(",").includes(activeTag);
+    const rowTags = (el.dataset.tags || "").toLowerCase().split(",");
+    const okT = !activeTags.length || activeTags.every(tag => rowTags.includes(tag));
     const okQ = !q || el.dataset.s.toLowerCase().includes(q);
     el.hidden = !(okC && okT && okQ);
   });
@@ -367,19 +373,41 @@ function filter(){
   });
   tlVisibility();
   /* #empty 是 main 的直接子元素，不会被上面的折叠波及 */
-  $("#empty").style.display = ((q || activeTag) && !all.some(e=>!e.hidden)) ? "block" : "none";
+  $("#empty").style.display = ((q || activeTags.length) && !all.some(e=>!e.hidden)) ? "block" : "none";
 }
 
-/* 列表页顶部显示当前标签过滤 + 一个「清除」回到全部。
-   纯链接跳转，不造 SPA 状态；清除就是回到不带 ?tag= 的当前页。 */
+/* ---- 多标签筛选：气泡可单独删，最右清空；文章上的标签是「追加」 ----
+   全程用真实链接 + ?tag= 逗号分隔，不做 SPA 状态：可分享、可后退、无脚本也能用。
+   tagHref 统一生成地址；syncTagLinks 把页面上每个标签链接改写成
+   「当前已选 + 它自己」，于是点文章右侧标签是往上加，而不是只看这一个。 */
+function tagHref(tags){
+  const u = new URL(location.pathname, location.origin);
+  if(tags.length) u.searchParams.set("tag", tags.join(","));
+  return u.pathname + u.search;
+}
 function initTagbar(){
   const bar = $("#tagbar");
-  if(!bar || !activeTag) return;
-  const raw = new URLSearchParams(location.search).get("tag");
-  const lbl = lang === "en" ? "Tag" : "标签";
-  const clr = lang === "en" ? "clear ×" : "清除 ×";
-  bar.innerHTML = `${lbl} <b>${esc(raw)}</b> <a href="${esc(location.pathname)}">${clr}</a>`;
+  if(!bar) return;
+  if(!activeTags.length){ bar.innerHTML = ""; bar.hidden = true; return; }
+  const rm = lang === "en" ? "Remove" : "移除";
+  const clr = lang === "en" ? "Clear all" : "清空";
+  /* 原样大小写取自首次出现的文章标签链接，没有就退回 URL 里的小写值 */
+  const labelOf = v => [...$$(".stack a[data-tag]")].find(a => a.dataset.tag === v)?.textContent.trim() || v;
+  bar.innerHTML =
+    `<span class="tagbar-label">${lang === "en" ? "Tags" : "标签"}</span>` +
+    activeTags.map(v => {
+      const rest = activeTags.filter(x => x !== v);
+      return `<a class="tag-bubble" href="${esc(tagHref(rest))}" title="${rm} ${esc(labelOf(v))}" aria-label="${rm} ${esc(labelOf(v))}">${esc(labelOf(v))}<i aria-hidden="true">×</i></a>`;
+    }).join("") +
+    `<a class="tag-clear" href="${esc(tagHref([]))}" title="${clr}" aria-label="${clr}">${clr} <i aria-hidden="true">×</i></a>`;
   bar.hidden = false;
+}
+/* 把文章里的标签链接改成「追加」：记下原始 tag，之后每次都拼上当前已选 */
+function syncTagLinks(){
+  $$(".stack a[href*='tag=']").forEach(a => {
+    if(!a.dataset.tag) a.dataset.tag = new URLSearchParams(a.getAttribute("href").split("?")[1] || "").get("tag") || "";
+    if(a.dataset.tag) a.setAttribute("href", tagHref([...new Set([...activeTags, a.dataset.tag])]));
+  });
 }
 
 /* ===================== 文内查找 =====================
@@ -865,8 +893,7 @@ $$(".qr-host").forEach(host => {
 setLang(lang);
 if(!isHome){ animate(); }
 buildTimeline();          /* 列表页：现建时间轴，之后的 filter 才能同步它的显隐 */
-if(!isHome){ filter(); }   /* 简历外的页面：筛选跑一次 */
-initTagbar();
+if(!isHome){ filter(); }   /* 简历外的页面：筛选跑一次（initTagbar 已随 setLang 跑过） */
 syncToc();
 syncTimeline();
 enhanceCode();
