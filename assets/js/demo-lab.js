@@ -92,9 +92,16 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
     viewCode.setAttribute('role', 'tabpanel');
     viewCode.hidden = true;
 
-    /* 搬移 site.js 已增强过的代码块（含复制按钮）到代码 Tab */
+    /* 搬移 site.js 已增强过的代码块（含复制按钮）到代码 Tab。
+       两种实际结构都要认：
+       - 本地 preview（mistune）：<div class="codeblock"><pre>…</pre></div>
+       - 真实 Jekyll（Rouge）：<div class="language-x highlighter-rouge">
+           <div class="highlight"><div class="codeblock"><pre class="highlight">…</pre></div></div></div>
+       后者最外层不是 .codeblock / PRE，只看类名会漏掉，代码就单独留在卡片外。 */
     const codeHost = root.nextElementSibling;
-    if (codeHost && (codeHost.classList.contains('codeblock') || codeHost.tagName === 'PRE')) {
+    if (codeHost && (codeHost.tagName === 'PRE' ||
+        codeHost.classList.contains('codeblock') ||
+        codeHost.querySelector('.codeblock, pre'))) {
       viewCode.append(codeHost);
     } else {
       viewCode.append(make('p', 'demo-fallback', '下方代码块即本例对应源码。'));
