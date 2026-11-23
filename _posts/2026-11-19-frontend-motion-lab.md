@@ -10,7 +10,7 @@ motion_lab: true
 
 [上一篇动效资源整理]({% post_url 2026-11-18-frontend-animation-resources %})讲去哪找组件、怎么选库；[Vue 3 实用指南]({% post_url 2026-10-16-vue-ui-guide %})讲怎么搭应用、处理加载和错误。这篇不再列库：**先亲手试，再看这个效果是什么、通常放在哪、第一版怎么写。**
 
-每节在实验台里选一个效果，再按提示点击、滚动或移动指针，不用装任何东西。手机可点按，键盘可用 `Tab` 找到控件；系统开启「减少动态效果」时，实验默认跳过非必要的运动，可以在单个实验台里手动打开。
+每节在实验台里选一个效果，再按提示点击、滚动或移动指针，不用装任何东西。手机可点按，键盘可用 `Tab` 找到控件；系统开启「减少动态效果」时，实验会跳过非必要的运动。
 
 实验台会显示每项的实现来源。**原包**是实际调用开源项目；**源码移植**是按上游组件的关键逻辑改成原生 JavaScript，替换了文案、样式或触发方式；其余标为**原生教学示例**，不是第三方组件的复刻。参考图只有效果名称，没有原站或视频，所以不承诺逐帧还原。可以点来源对照原组件。第三方源码许可见[随站分发的许可证]({{ '/assets/js/vendor/motion-lab-LICENSES.txt' | relative_url }})。
 
@@ -138,4 +138,4 @@ motion_lab: true
 
 想让**一个状态**顺滑变化，用 `transition`；想在点击后播完**一段变化**，用 `@keyframes` 或 `element.animate()`；想让**滚动位置**控制进度，先试容器滚动和 `position: sticky`。用手指、键盘和减少动态设置各试一次：不播动画，也要能操作和看懂结果。
 
-可以边试边看本站的[实验脚本]({{ '/assets/js/motion-lab.js' | relative_url }})与[样式]({{ '/assets/css/motion-lab.css' | relative_url }})。继续阅读：MDN 的 [Web Animations API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API)、[滚动驱动动画](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_scroll-driven_animations)、[减少动态效果](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) 和 [`dialog`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog)。
+可以边试边看本站的[实验脚本]({{ '/assets/js/motion-lab.js' | relative_url }})与[样式]({{ '/assets/css/motion-lab.css' | relative_url }})。想进一步分清 3D、WebGL、three.js、GSAP 的关系和选型，接着读[前端动效资源整理]({% post_url 2026-11-18-frontend-animation-resources %})。继续阅读：MDN 的 [Web Animations API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API)、[滚动驱动动画](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_scroll-driven_animations)、[减少动态效果](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) 和 [`dialog`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog)。
