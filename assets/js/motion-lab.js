@@ -1,4 +1,6 @@
 import { animate, stagger, inView, scroll, springValue, EmblaCarousel, Lenis, NumberFlow, trailingCursor } from './vendor/motion-lab-vendor.js';
+import { animatedSelect } from './animated-select.js';
+import { makeExpandIcon, wireExpand } from './card-expand.js';
 
 (() => {
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
@@ -482,7 +484,7 @@ import { animate, stagger, inView, scroll, springValue, EmblaCarousel, Lenis, Nu
       }
       stage.append(viewport);
       const toggle = run('播放跑马灯', () => {
-        if (!motion()) { status('先在实验台上方勾选播放动态效果。'); return; }
+        if (!motion()) { status('系统开启了减少动态效果，本项不播放。'); return; }
         viewport.classList.add('ml-marquee-started');
         const running = viewport.classList.toggle('ml-marquee-running');
         toggle.textContent = running ? '暂停' : '继续播放';
@@ -663,31 +665,95 @@ import { animate, stagger, inView, scroll, springValue, EmblaCarousel, Lenis, Nu
 
   document.querySelectorAll('.motion-lab[data-lab]').forEach((lab, index) => {
     const demos = groups[lab.dataset.lab];
-    const rows = lab.nextElementSibling?.querySelectorAll('tbody tr') ?? [];
+    const rows = [...(lab.nextElementSibling?.querySelectorAll('tbody tr') ?? [])];
     if (!demos || rows.length !== demos.length) return;
-    const picker = create('select');
-    rows.forEach((row, position) => {
-      const option = create('option', '', row.cells[0].textContent.trim());
-      option.value = position;
-      picker.append(option);
+
+    /* 与示例区同款卡片：顶部一行 = 示例/代码 Tab + 中间切换下拉 + 右侧放大图标；
+       示例和代码面板都随所选实验切换。 */
+    lab.classList.add('motion-lab-card');
+    const card = create('div', 'demo');
+    const head = create('div', 'demo-head');
+    const tabs = create('div', 'demo-tabs');
+    tabs.setAttribute('role', 'tablist');
+    const tabDemo = create('button', 'demo-tab', '示例');
+    const tabCode = create('button', 'demo-tab', '代码');
+    [tabDemo, tabCode].forEach((tab, i) => {
+      tab.type = 'button';
+      tab.setAttribute('role', 'tab');
+      tab.setAttribute('aria-selected', String(i === 0));
+      tab.tabIndex = i === 0 ? 0 : -1;
     });
-    const selectorLabel = create('label', '', '选择实验');
-    selectorLabel.append(picker);
-    const toggle = create('input');
-    toggle.type = 'checkbox';
-    toggle.checked = !preference.matches;
-    const motionLabel = create('label', 'ml-motion');
-    motionLabel.append(toggle, '播放动态效果');
-    const header = create('div', 'ml-header');
-    header.append(selectorLabel, motionLabel);
-    const credit = create('div', 'ml-source');
+    tabs.append(tabDemo, tabCode);
+    const slot = create('div', 'demo-slot');
+    const picker = animatedSelect(
+      rows.map((row, position) => ({value: String(position), label: row.cells[0].textContent.trim()})),
+      '0',
+      null,
+      '选择实验'
+    );
+    slot.append(picker);
+    const actionsHead = create('div', 'demo-actions');
+    const expand = create('button', 'demo-icon');
+    makeExpandIcon(expand);
+    actionsHead.append(expand);
+    head.append(tabs, slot, actionsHead);
+
+    const viewDemo = create('div', 'demo-view');
+    viewDemo.setAttribute('role', 'tabpanel');
     const stage = create('div', 'ml-stage');
     stage.id = `ml-stage-${index}`;
-    const actions = create('div', 'ml-actions');
-    const message = create('div', 'ml-status');
+    const foot = create('div', 'demo-foot');
+    const actions = create('div', 'demo-controls ml-actions');
+    const message = create('div', 'demo-status ml-status');
     message.id = stage.id + '-status';
     message.setAttribute('role', 'status');
-    lab.append(header, credit, stage, actions, message);
+    foot.append(actions, message);
+    viewDemo.append(stage, foot);
+
+    const viewCode = create('div', 'demo-view ml-code');
+    viewCode.setAttribute('role', 'tabpanel');
+    viewCode.hidden = true;
+
+    card.append(head, viewDemo, viewCode);
+    lab.replaceChildren(card);
+
+    const selectTab = which => {
+      const showCode = which === 'code';
+      tabDemo.setAttribute('aria-selected', String(!showCode));
+      tabCode.setAttribute('aria-selected', String(showCode));
+      tabDemo.tabIndex = showCode ? -1 : 0;
+      tabCode.tabIndex = showCode ? 0 : -1;
+      viewDemo.hidden = showCode;
+      viewCode.hidden = !showCode;
+    };
+    tabDemo.addEventListener('click', () => selectTab('demo'));
+    tabCode.addEventListener('click', () => selectTab('code'));
+    tabs.addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+      event.preventDefault();
+      const next = tabDemo.getAttribute('aria-selected') === 'true' ? tabCode : tabDemo;
+      next.focus(); next.click();
+    });
+
+    /* 代码面板：当前实验的「第一版怎么做」+ 实现来源，随选择更新 */
+    const updateCode = () => {
+      const pos = Number(picker.value);
+      const row = rows[pos];
+      viewCode.replaceChildren();
+      const note = create('p', 'ml-code-note', row?.cells[2]?.textContent.trim() || '');
+      viewCode.append(note);
+      const source = sources[lab.dataset.lab]?.[String(pos)];
+      const line = create('div', 'ml-source');
+      if (source) {
+        const link = create('a', '', source[0]);
+        link.href = source[1];
+        line.append('实现来源：', link);
+      } else {
+        line.textContent = '实现来源：原生教学示例，未按第三方组件复刻';
+      }
+      viewCode.append(line);
+    };
+
     let controller;
     function mount() {
       controller?.abort();
@@ -710,27 +776,22 @@ import { animate, stagger, inView, scroll, springValue, EmblaCarousel, Lenis, Nu
       actions.hidden = true;
       stage.removeAttribute('data-tone');
       stage.dataset.effect = picker.value;
-      const source = sources[lab.dataset.lab]?.[picker.value];
-      credit.textContent = '';
-      if (source) {
-        const link = create('a', '', source[0]);
-        link.href = source[1];
-        credit.append('实现来源：', link);
-      } else {
-        credit.textContent = '实现来源：原生教学示例，未按第三方组件复刻';
-      }
-      lab.dataset.motion = toggle.checked ? 'on' : 'off';
+      const motionOn = () => !preference.matches;
+      lab.dataset.motion = motionOn() ? 'on' : 'off';
       const status = text => { message.textContent = text; };
       status('');
       const listen = (element, name, callback, options) => element.addEventListener(name, callback, {...options, signal});
       listen(stage, 'ml-reset', () => { mount(); actions.querySelector('button')?.focus(); });
-      const button = (text, className = '') => create('button', className, text);
+      const button = (text, className = 'demo-btn') => create('button', className, text);
       const tile = text => stage.appendChild(create('div', 'ml-tile', text));
       demos[Number(picker.value)]({
         stage, button, tile, status, listen, signal,
-        motion: () => toggle.checked,
+        motion: motionOn,
         later(callback, time) {
-          const id = setTimeout(() => { timers.delete(id); callback(); }, time);
+          /* 关闭动态效果时把分步动画的延时压到 0：打字机、数字滚动、加购反馈
+             这类靠 setTimeout 串起来的效果会直接跳到终态，而不是照常一格格播。
+             实时读取开关状态，切到 off 后重建的实验立即生效。 */
+          const id = setTimeout(() => { timers.delete(id); callback(); }, motionOn() ? time : 0);
           timers.add(id);
         },
         row(labels) {
@@ -748,14 +809,14 @@ import { animate, stagger, inView, scroll, springValue, EmblaCarousel, Lenis, Nu
           return control;
         },
         upstream(...args) {
-          if (!toggle.checked) return;
+          if (!motionOn()) return;
           const animation = animate(...args);
           upstreamAnimations.add(animation);
           animation.then(() => upstreamAnimations.delete(animation), () => upstreamAnimations.delete(animation));
           return animation;
         },
         play(element, frames, options, replace = true) {
-          if (!toggle.checked || !element.animate) return;
+          if (!motionOn() || !element.animate) return;
           if (replace) element.getAnimations().forEach(animation => animation.cancel());
           const animation = element.animate(frames, {duration: 480, easing: 'ease-out', fill: 'backwards', ...options});
           animated.add(animation);
@@ -766,8 +827,11 @@ import { animate, stagger, inView, scroll, springValue, EmblaCarousel, Lenis, Nu
         }
       });
     }
-    picker.onchange = toggle.onchange = mount;
-    preference.addEventListener('change', event => { toggle.checked = !event.matches; mount(); });
+    picker.onchange = () => { updateCode(); mount(); };
+    preference.addEventListener('change', mount);
+    /* 传 lab 作为移动容器：保留 .motion-lab 祖先链，配色变量与 data-motion 样式在放大后仍生效 */
+    wireExpand(card, expand, '动效实验 · ' + lab.dataset.lab, () => {}, lab);
+    updateCode();
     mount();
   });
 })();
