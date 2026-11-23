@@ -28,12 +28,22 @@
 {%- endif %}
 <script>
 /* 在首帧之前定好主题，否则深色用户会先闪一下白屏。
-   localStorage 在隐私模式下会抛异常，所以整段包在 try 里。 */
+   三态：light / system / dark，沿用 next-themes 的 "theme" 键；
+   data-theme 存真正生效的浅/深，data-theme-pref 存用户的选择（含 system），
+   这样按钮图标能显示「跟随系统」而不只是解析后的颜色。 */
 try{
+  var pref = localStorage.getItem("theme") || "system";
+  if(pref!=="light" && pref!=="dark" && pref!=="system") pref = "system";
+  document.documentElement.dataset.themePref = pref;
   document.documentElement.dataset.theme =
-    localStorage.getItem("theme") ||
-    (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-}catch(e){ document.documentElement.dataset.theme = "light"; }
+    pref === "system"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : pref;
+}catch(e){
+  document.documentElement.dataset.themePref = "system";
+  document.documentElement.dataset.theme =
+    matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
 /* 入场编排只在首屏跑一次。切语言会重建标签之类的节点，
    没有这道门控动画会被重播；site.js 在序列跑完后摘掉这个类。 */
 document.documentElement.classList.add("boot");
@@ -63,8 +73,26 @@ document.documentElement.classList.add("boot");
       <span id="qinfo" aria-live="polite">⌕</span>
     </label>
     <button id="lang" class="tgl" type="button" title="Switch to English">EN</button>
-    <button id="theme" class="tgl" type="button" title="切换为深色">
-      <i class="half" aria-hidden="true"></i>
+    {%- comment -%}
+      三态主题按钮：三枚图标叠在同一格里，由 data-pref 决定当前显示哪枚。
+      aria-label / title 由 site.js 的 syncTheme() 按当前选择动态写入。
+    {%- endcomment -%}
+    <button id="theme" class="tgl theme-tgl" type="button" data-pref="system"
+            title="切换主题" aria-label="切换主题">
+      <svg class="th-icon" data-icon="light" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2.5v2M12 19.5v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2.5 12h2M19.5 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      </svg>
+      <svg class="th-icon" data-icon="system" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2.5" y="3.5" width="19" height="13" rx="1"/>
+        <path d="M8 20.5h8M12 16.5v4"/>
+      </svg>
+      <svg class="th-icon" data-icon="dark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
     </button>
     <a class="ico" href="https://github.com/noSugarK" target="_blank" rel="noopener">
       <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">

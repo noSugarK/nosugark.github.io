@@ -142,11 +142,17 @@ a{color:inherit}
   border:var(--bd) solid var(--line);background:var(--paper);color:var(--fg);
   font:700 13px var(--head);transition:all .2s var(--ease)}
 .tgl:hover{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
-/* 半填充圆——伊登色环的几何原型，深色时转 180° */
-.half{width:15px;height:15px;border:2px solid currentColor;border-radius:50%;
-  background:linear-gradient(90deg,currentColor 0 50%,transparent 50% 100%);
-  transition:transform .4s var(--ease)}
-html[data-theme="dark"] .half{transform:rotate(180deg)}
+/* 三态主题按钮：三枚图标占同一格，按钮上的 data-pref 决定哪枚可见。
+   切走的那枚缩小转出、切进的这枚转正，比直接换图多一个方位暗示：
+   太阳=浅色、显示器=跟随系统、月亮=深色。 */
+.theme-tgl{width:42px;padding:0}
+.theme-tgl .th-icon{grid-area:1/1;width:19px;height:19px;
+  opacity:0;transform:rotate(-50deg) scale(.4);
+  transition:opacity .2s ease,transform .34s var(--ease)}
+.theme-tgl[data-pref="light"]  .th-icon[data-icon="light"],
+.theme-tgl[data-pref="system"] .th-icon[data-icon="system"],
+.theme-tgl[data-pref="dark"]   .th-icon[data-icon="dark"]{
+  opacity:1;transform:none}
 
 /* ---- 区块标题：几何标记按 圆→方→四分之一圆 / 蓝→红→黄 循环 ---- */
 main > section{padding:64px 0 0}
@@ -677,6 +683,16 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.3s}
 
+/* ---- 主题擦除：整页一次性 wipe（animate-ui ThemeToggler 的做法）----
+   JS 用 types:animate-ui-theme 起过渡，clip-path 扫过 ::view-transition-new(root)。
+   这两条把默认快照动画关掉、并让全页（含顶栏等具名元素）合成一张图一起被扫过，
+   而不是各自交叉淡出；只在 theme 这种 type 下生效，不影响换页 / 语言的过渡。 */
+:root:active-view-transition-type(animate-ui-theme)::view-transition-old(root),
+:root:active-view-transition-type(animate-ui-theme)::view-transition-new(root){
+  animation:none;mix-blend-mode:normal}
+:root:active-view-transition-type(animate-ui-theme) body,
+:root:active-view-transition-type(animate-ui-theme) body *{
+  view-transition-name:none !important}
 
 /* ---- 跨文档换页：同源导航整页过渡 ----
    顶栏单独命名，换页时原地不动，只有正文滑一下。

@@ -164,8 +164,10 @@ const UI = {
   findInPost:{zh:"在本文中查找…  ↵ 下一个",en:"Find in this article…  ↵ next"},
   langBtn:{zh:"EN",en:"中"},                                  /* 显示的是「切过去」的语言 */
   langTip:{zh:"Switch to English",en:"切换为中文"},
-  themeTip:{zh:{light:"切换为深色",dark:"切换为浅色"},
-            en:{light:"Switch to dark",dark:"Switch to light"}},
+  themeTip:{
+    zh:{light:"主题：浅色。切换到跟随系统",system:"主题：跟随系统。切换到深色",dark:"主题：深色。切换到浅色"},
+    en:{light:"Theme: light. Switch to system",system:"Theme: system. Switch to dark",dark:"Theme: dark. Switch to light"}
+  },
 };
 
 /* ===================== 工具 ===================== */
@@ -272,20 +274,76 @@ function setLang(l){
   renderResume();
 }
 
-/* ===================== 深浅色 ===================== */
-/* 首屏的 data-theme 由 <head> 里的内联脚本定好，这里只负责切换和提示文案 */
+/* ===================== 三态主题（照 animate-ui ThemeToggler）=====================
+   选择 pref: light → system → dark → light；真正生效的只有 light / dark。
+   首屏的 data-theme / data-theme-pref 由 <head> 内联脚本定好，这里负责切换与提示。
+   切换瞬间图标先走到下一态，等 clip-path 擦过整页后再把值落到 localStorage。 */
+const NEXT_THEME = { light:"system", system:"dark", dark:"light" };
+const SYS_DARK = matchMedia("(prefers-color-scheme: dark)");
+const effectiveOf = pref => pref === "system" ? (SYS_DARK.matches ? "dark" : "light") : pref;
+/* 四个方向的 clip-path：新页面从哪一边被"擦"出来 */
+const CLIP = {
+  ltr:["inset(0 100% 0 0)","inset(0 0 0 0)"], rtl:["inset(0 0 0 100%)","inset(0 0 0 0)"],
+  ttb:["inset(0 0 100% 0)","inset(0 0 0 0)"], btt:["inset(100% 0 0 0)","inset(0 0 0 0)"],
+};
+let themeSwitching = false;
+
 function syncTheme(){
   const tb = $("#theme");
   if(!tb) return;
-  const tip = UI.themeTip[lang][document.documentElement.dataset.theme] || "";
-  tb.title = tb.ariaLabel = tip;
+  const pref = document.documentElement.dataset.themePref || "system";
+  tb.dataset.pref = pref;
+  tb.title = tb.ariaLabel = UI.themeTip[lang][pref] || "";
 }
-function toggleTheme(){
-  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-  document.documentElement.dataset.theme = next;
-  store.set("theme", next);
+function commitTheme(pref){
+  document.documentElement.dataset.themePref = pref;
+  document.documentElement.dataset.theme = effectiveOf(pref);
+  store.set("theme", pref);
   syncTheme();
 }
+async function toggleTheme(){
+  if(themeSwitching) return;                       /* 擦除期间连点直接丢掉，避免快照错乱 */
+  const pref = document.documentElement.dataset.themePref || "system";
+  const next = NEXT_THEME[pref] || "system";
+  const resolved = effectiveOf(next);
+
+  /* 选 system 但系统当前就是生效色：屏幕不会变，无需擦除，直接落值 */
+  if(next === "system" && resolved === document.documentElement.dataset.theme){
+    commitTheme(next); return;
+  }
+
+  /* 图标先走到下一态，给切换一个即时反馈 */
+  const tb = $("#theme");
+  if(tb){ tb.dataset.pref = next; tb.title = tb.ariaLabel = UI.themeTip[lang][next]; }
+
+  if(!MOTION || !document.startViewTransition){ commitTheme(next); return; }
+
+  themeSwitching = true;
+  const apply = () => { document.documentElement.dataset.theme = resolved; };
+  let tr;
+  try{
+    tr = document.startViewTransition({ update:apply, types:["animate-ui-theme"] });
+  }catch(e){
+    tr = document.startViewTransition(apply);      /* 不认 types 的旧浏览器退回普通过渡 */
+  }
+  try{ await tr.ready; }
+  catch(e){ themeSwitching = false; commitTheme(next); return; }
+
+  const [from, to] = CLIP[tb?.dataset.dir] || CLIP.ltr;
+  try{
+    await document.documentElement.animate(
+      { clipPath:[from, to] },
+      { duration:700, easing:"ease-in-out", pseudoElement:"::view-transition-new(root)" }
+    ).finished;
+  }catch(e){}
+  themeSwitching = false;
+  commitTheme(next);
+}
+/* 选了跟随系统后，系统偏好若变化，颜色跟着走（无擦除，静默） */
+SYS_DARK.addEventListener?.("change", () => {
+  if((document.documentElement.dataset.themePref || "system") === "system" && !themeSwitching)
+    document.documentElement.dataset.theme = SYS_DARK.matches ? "dark" : "light";
+});
 
 /* ===================== 搜索 + 筛选 ===================== */
 /* 过滤所有带 data-s 的块，整段空了就折叠。
@@ -724,7 +782,8 @@ const vt = fn => {
 
 /* ===================== 绑定 ===================== */
 $("#lang")?.addEventListener("click", ()=> vt(()=> setLang(lang === "zh" ? "en" : "zh")));
-$("#theme")?.addEventListener("click", ()=> vt(toggleTheme));
+/* 主题自己用 types:animate-ui-theme 起过渡，不能再套 vt()（会嵌套两个过渡） */
+$("#theme")?.addEventListener("click", toggleTheme);
 /* 打字要即时反馈，不走 View Transitions */
 $("#q")?.addEventListener("input", ()=>{
   const q = $("#q").value.trim().toLowerCase();
