@@ -14,6 +14,7 @@
   容易误判成"代码没生效"。site.time 每次构建都变。
 {%- endcomment -%}
 <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+<link rel="stylesheet" href="{{ '/assets/css/skeleton.css' | relative_url }}?v={{ site.time | date: '%s' }}">
 {%- if page.motion_lab or page.demo_lab %}
 <link rel="stylesheet" href="{{ '/assets/css/demo-card.css' | relative_url }}?v={{ site.time | date: '%s' }}">
 <link rel="stylesheet" href="{{ '/assets/css/animated-select.css' | relative_url }}?v={{ site.time | date: '%s' }}">
@@ -102,7 +103,128 @@ document.documentElement.classList.add("boot");
   </div>
 </header>
 
-<main class="wrap" id="top">
+<main class="wrap sk-host" id="top">
+{%- comment -%}
+  首屏骨架：盖在正文上，首帧就位，内容就绪后由 site.js 淡出移除。
+  三种页面各一套占位，形状按各自真实布局走，切主题时靠 CSS 变量跟着变。
+  aria-hidden + CSS pointer-events:none 让它对读屏和点击都隐形。
+{%- endcomment -%}
+<div class="sk-page" data-sk="{% if page.url == '/' %}home{% elsif page.url == '/blog/' %}blog{% else %}post{% endif %}" aria-hidden="true">
+  {%- if page.url == '/' -%}
+  <div class="hero-s">
+    <div class="gap">
+      <i class="sk" style="--w:52%;--h:52px"></i>
+      <div class="chips">
+        <i class="sk inl" style="--w:96px;--h:26px"></i><i class="sk inl" style="--w:112px;--h:26px"></i>
+        <i class="sk inl" style="--w:88px;--h:26px"></i><i class="sk inl" style="--w:104px;--h:26px"></i>
+      </div>
+      <div class="gap" style="gap:9px;margin-top:10px">
+        <i class="sk" style="--w:92%"></i><i class="sk" style="--w:84%"></i><i class="sk" style="--w:61%"></i>
+      </div>
+    </div>
+    <div class="facts-s">
+      <i class="sk" style="--w:64px;--h:11px"></i><i class="sk" style="--w:150px;--h:13px"></i>
+      <i class="sk" style="--w:58px;--h:11px"></i><i class="sk" style="--w:180px;--h:13px"></i>
+      <i class="sk" style="--w:72px;--h:11px"></i><i class="sk" style="--w:130px;--h:13px"></i>
+      <i class="sk" style="--w:66px;--h:11px"></i><i class="sk" style="--w:160px;--h:13px"></i>
+      <i class="sk" style="--w:60px;--h:11px"></i><i class="sk" style="--w:140px;--h:13px"></i>
+      <i class="sk" style="--w:78px;--h:11px"></i><i class="sk" style="--w:120px;--h:13px"></i>
+      <i class="sk" style="--w:56px;--h:11px"></i><i class="sk" style="--w:110px;--h:13px"></i>
+    </div>
+  </div>
+  <div class="sec-s">
+    <i class="sk" style="--w:150px;--h:30px"></i>
+    <div class="filters-s"><i class="sk inl" style="--w:62px;--h:32px"></i><i class="sk inl" style="--w:52px;--h:32px"></i><i class="sk inl" style="--w:78px;--h:32px"></i><i class="sk inl" style="--w:66px;--h:32px"></i></div>
+    <div class="grid-s">
+      <div class="card-s"><i class="sk" style="--w:70%;--h:19px"></i><i class="sk" style="--w:42%;--h:11px"></i><i class="sk" style="--w:96%"></i><i class="sk" style="--w:80%"></i><div class="chips"><i class="sk inl" style="--w:48px;--h:20px"></i><i class="sk inl" style="--w:64px;--h:20px"></i><i class="sk inl" style="--w:52px;--h:20px"></i></div></div>
+      <div class="card-s"><i class="sk" style="--w:62%;--h:19px"></i><i class="sk" style="--w:38%;--h:11px"></i><i class="sk" style="--w:92%"></i><i class="sk" style="--w:74%"></i><div class="chips"><i class="sk inl" style="--w:58px;--h:20px"></i><i class="sk inl" style="--w:44px;--h:20px"></i></div></div>
+      <div class="card-s"><i class="sk" style="--w:76%;--h:19px"></i><i class="sk" style="--w:46%;--h:11px"></i><i class="sk" style="--w:88%"></i><i class="sk" style="--w:90%"></i><div class="chips"><i class="sk inl" style="--w:52px;--h:20px"></i><i class="sk inl" style="--w:68px;--h:20px"></i><i class="sk inl" style="--w:46px;--h:20px"></i></div></div>
+      <div class="card-s"><i class="sk" style="--w:56%;--h:19px"></i><i class="sk" style="--w:34%;--h:11px"></i><i class="sk" style="--w:94%"></i><i class="sk" style="--w:66%"></i><div class="chips"><i class="sk inl" style="--w:60px;--h:20px"></i><i class="sk inl" style="--w:50px;--h:20px"></i></div></div>
+      <div class="card-s"><i class="sk" style="--w:68%;--h:19px"></i><i class="sk" style="--w:40%;--h:11px"></i><i class="sk" style="--w:86%"></i><i class="sk" style="--w:78%"></i><div class="chips"><i class="sk inl" style="--w:46px;--h:20px"></i><i class="sk inl" style="--w:56px;--h:20px"></i><i class="sk inl" style="--w:62px;--h:20px"></i></div></div>
+      <div class="card-s" style="min-height:120px;place-content:center"><i class="sk" style="--w:70%;--h:14px"></i></div>
+    </div>
+  </div>
+  <div class="sec-s">
+    <i class="sk" style="--w:120px;--h:30px"></i>
+    <div class="chips" style="margin-top:22px">
+      <i class="sk inl" style="--w:88px;--h:34px"></i><i class="sk inl" style="--w:112px;--h:34px"></i><i class="sk inl" style="--w:76px;--h:34px"></i>
+      <i class="sk inl" style="--w:130px;--h:34px"></i><i class="sk inl" style="--w:94px;--h:34px"></i><i class="sk inl" style="--w:106px;--h:34px"></i>
+      <i class="sk inl" style="--w:82px;--h:34px"></i><i class="sk inl" style="--w:118px;--h:34px"></i><i class="sk inl" style="--w:70px;--h:34px"></i>
+    </div>
+  </div>
+  <div class="sec-s">
+    <i class="sk" style="--w:158px;--h:30px"></i>
+    <div class="tl-s">
+      <div class="card-s"><i class="sk" style="--w:140px;--h:16px"></i><div class="gap"><i class="sk" style="--w:42%;--h:17px"></i><i class="sk" style="--w:30%;--h:12px"></i><i class="sk" style="--w:88%"></i><i class="sk" style="--w:72%"></i></div></div>
+      <div class="card-s"><i class="sk" style="--w:130px;--h:16px"></i><div class="gap"><i class="sk" style="--w:48%;--h:17px"></i><i class="sk" style="--w:26%;--h:12px"></i><i class="sk" style="--w:84%"></i><i class="sk" style="--w:80%"></i></div></div>
+    </div>
+  </div>
+  <div class="sec-s">
+    <i class="sk" style="--w:118px;--h:30px"></i>
+    <div class="award-s">
+      <div class="card-s"><i class="sk" style="--w:92px;--h:22px"></i><i class="sk" style="--w:60%;--h:14px"></i></div>
+      <div class="card-s"><i class="sk" style="--w:84px;--h:22px"></i><i class="sk" style="--w:68%;--h:14px"></i></div>
+      <div class="card-s"><i class="sk" style="--w:96px;--h:22px"></i><i class="sk" style="--w:54%;--h:14px"></i></div>
+    </div>
+  </div>
+  {%- elsif page.url == '/blog/' -%}
+  <i class="sk" style="--w:96px;--h:30px"></i>
+  <div class="layout-s">
+    <div class="rail-s">
+      <i class="sk" style="--w:52px;--h:14px"></i><i class="sk" style="--w:40px;--h:12px"></i><i class="sk" style="--w:46px;--h:12px"></i>
+      <i class="sk" style="--w:50px;--h:14px"></i><i class="sk" style="--w:42px;--h:12px"></i><i class="sk" style="--w:44px;--h:12px"></i>
+      <i class="sk" style="--w:48px;--h:14px"></i><i class="sk" style="--w:38px;--h:12px"></i>
+    </div>
+    <div class="posts-s">
+      <i class="sk" style="--w:120px;--h:28px"></i>
+      <div class="post-s"><i class="sk" style="--w:66%;--h:22px"></i><div class="flex"><i class="sk inl" style="--w:84px;--h:12px"></i><i class="sk inl" style="--w:52px;--h:18px"></i><i class="sk inl" style="--w:64px;--h:18px"></i></div><i class="sk" style="--w:92%"></i><i class="sk" style="--w:70%"></i></div>
+      <div class="post-s"><i class="sk" style="--w:74%;--h:22px"></i><div class="flex"><i class="sk inl" style="--w:84px;--h:12px"></i><i class="sk inl" style="--w:60px;--h:18px"></i></div><i class="sk" style="--w:88%"></i><i class="sk" style="--w:62%"></i></div>
+      <div class="post-s"><i class="sk" style="--w:58%;--h:22px"></i><div class="flex"><i class="sk inl" style="--w:84px;--h:12px"></i><i class="sk inl" style="--w:48px;--h:18px"></i><i class="sk inl" style="--w:70px;--h:18px"></i></div><i class="sk" style="--w:94%"></i><i class="sk" style="--w:76%"></i></div>
+      <i class="sk" style="--w:110px;--h:28px"></i>
+      <div class="post-s"><i class="sk" style="--w:70%;--h:22px"></i><div class="flex"><i class="sk inl" style="--w:84px;--h:12px"></i><i class="sk inl" style="--w:56px;--h:18px"></i></div><i class="sk" style="--w:86%"></i><i class="sk" style="--w:68%"></i></div>
+      <div class="post-s"><i class="sk" style="--w:64%;--h:22px"></i><div class="flex"><i class="sk inl" style="--w:84px;--h:12px"></i><i class="sk inl" style="--w:62px;--h:18px"></i></div><i class="sk" style="--w:90%"></i><i class="sk" style="--w:58%"></i></div>
+    </div>
+  </div>
+  {%- else -%}
+  <div class="gap">
+    <i class="sk" style="--w:64%;--h:44px"></i>
+    <i class="sk" style="--w:36%;--h:13px"></i>
+  </div>
+  <div class="toc-s">
+    <i class="sk" style="--w:88%"></i><i class="sk" style="--w:72%"></i><i class="sk" style="--w:80%;margin-left:22px"></i>
+    <i class="sk" style="--w:64%;margin-left:22px"></i><i class="sk" style="--w:76%"></i>
+  </div>
+  <div class="prose-s">
+    <i class="sk" style="--w:34%;--h:26px"></i>
+    <i class="sk" style="--w:96%"></i><i class="sk" style="--w:93%"></i><i class="sk" style="--w:78%"></i>
+    <div class="diagram-s"></div>
+    <i class="sk" style="--w:30%;--h:22px"></i>
+    <i class="sk" style="--w:94%"></i><i class="sk" style="--w:90%"></i><i class="sk" style="--w:66%"></i>
+    <i class="sk" style="--w:40%"></i><i class="sk" style="--w:35%"></i>
+  </div>
+  {%- endif -%}
+</div>
+<script>
+/* 骨架退场：内容就绪（load）后淡出，并留最短展示时间免得一闪而过。
+   这段故意内联，不依赖 site.js——脚本出错也不会把正文永久盖住。 */
+(function(){
+  const sk = document.querySelector(".sk-page");
+  if(!sk) return;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const t0 = performance.now(), MIN = reduce ? 0 : 360, MAX = 3000;
+  let done = false;
+  const drop = () => {
+    if(done) return; done = true;
+    if(reduce){ sk.remove(); return; }
+    sk.classList.add("gone");
+    setTimeout(()=> sk.remove(), 420);
+  };
+  const ready = () => setTimeout(drop, Math.max(0, MIN - (performance.now() - t0)));
+  if(document.readyState === "complete") ready();
+  else addEventListener("load", ready, {once:true});
+  setTimeout(drop, MAX);   /* 图片 / CDN 卡住也不能一直盖着 */
+})();
+</script>
 {{ content }}
 {%- comment -%}
   「没有匹配」必须是 main 的直接子元素——放进 section 里的话，

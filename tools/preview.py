@@ -76,9 +76,11 @@ def frontmatter(text):
 
 
 def jinja_compat(src):
-    """把 Liquid 独有的 filter: 参数写法与 comment 块转成 Jinja2 语法。"""
+    """把 Liquid 独有的 filter: 参数写法、comment 块、elsif 转成 Jinja2 语法。"""
     src = re.sub(r"\{%-?\s*comment\s*-?%\}.*?\{%-?\s*endcomment\s*-?%\}", "", src, flags=re.S)
     src = re.sub(r"\|\s*(\w+)\s*:\s*([^}|]+)", lambda m: f"| {m.group(1)}({m.group(2).strip()})", src)
+    # Liquid 写 elsif，Jinja2 写 elif；站点模板用 elsif 做多分支
+    src = re.sub(r"(\{%-?\s*)elsif\b", r"\1elif", src)
     return src
 
 
