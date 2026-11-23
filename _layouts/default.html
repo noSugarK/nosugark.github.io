@@ -105,11 +105,12 @@ document.documentElement.classList.add("boot");
 
 <main class="wrap sk-host" id="top">
 {%- comment -%}
-  首屏骨架：盖在正文上，首帧就位，内容就绪后由 site.js 淡出移除。
+  首屏骨架：默认 hidden——已有数据就直接显示正文，不闪占位。
+  只有 DOM 就绪时数据还没到才显形，数据一到立刻撤掉。
   三种页面各一套占位，形状按各自真实布局走，切主题时靠 CSS 变量跟着变。
   aria-hidden + CSS pointer-events:none 让它对读屏和点击都隐形。
 {%- endcomment -%}
-<div class="sk-page" data-sk="{% if page.url == '/' %}home{% elsif page.url == '/blog/' %}blog{% else %}post{% endif %}" aria-hidden="true">
+<div class="sk-page" hidden data-sk="{% if page.url == '/' %}home{% elsif page.url == '/blog/' %}blog{% else %}post{% endif %}" aria-hidden="true">
   {%- if page.url == '/' -%}
   <div class="hero-s">
     <div class="intro-s">
@@ -208,24 +209,35 @@ document.documentElement.classList.add("boot");
   {%- endif -%}
 </div>
 <script>
-/* 骨架退场：内容就绪（load）后淡出，并留最短展示时间免得一闪而过。
-   这段故意内联，不依赖 site.js——脚本出错也不会把正文永久盖住。 */
+/* 骨架是「数据未就绪」时的占位，不是固定动画：
+   DOM 就绪时真实数据已在 → 一直 hidden，直接露出正文，一帧都不占；
+   数据还没到 → 显形，盯着容器等它填好，一到就立刻撤掉。
+   判据按页面类型取真实内容的根节点，纯 DOM 观察，不依赖 site.js 是否出错。 */
 (function(){
   const sk = document.querySelector(".sk-page");
   if(!sk) return;
+  const kind = sk.dataset.sk;
+  const host = kind === "home" ? "#grid .card" : kind === "blog" ? ".post-row" : ".prose p";
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const t0 = performance.now(), MIN = reduce ? 0 : 360, MAX = 3000;
   let done = false;
   const drop = () => {
     if(done) return; done = true;
-    if(reduce){ sk.remove(); return; }
-    sk.classList.add("gone");
-    setTimeout(()=> sk.remove(), 420);
+    if(!sk.hidden){                       /* 只有真的显形过才淡出，没露过就直接删 */
+      if(reduce) sk.remove();
+      else { sk.classList.add("gone"); setTimeout(()=> sk.remove(), 420); }
+    } else sk.remove();
   };
-  const ready = () => setTimeout(drop, Math.max(0, MIN - (performance.now() - t0)));
-  if(document.readyState === "complete") ready();
-  else addEventListener("load", ready, {once:true});
-  setTimeout(drop, MAX);   /* 图片 / CDN 卡住也不能一直盖着 */
+  const start = () => {
+    if(document.querySelector(host)){ drop(); return; }   /* 已有数据：骨架从头到尾不出现 */
+    sk.hidden = false;                                     /* 没数据才占位 */
+    const mo = new MutationObserver(()=>{
+      if(document.querySelector(host)){ mo.disconnect(); drop(); }
+    });
+    mo.observe(document.body, {childList:true, subtree:true});
+    setTimeout(()=>{ mo.disconnect(); drop(); }, 3000);    /* 数据始终不来也不能一直盖着 */
+  };
+  if(document.readyState === "loading") addEventListener("DOMContentLoaded", start, {once:true});
+  else start();
 })();
 </script>
 {{ content }}
