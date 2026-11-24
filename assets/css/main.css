@@ -892,16 +892,18 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 }
 
 /* ===================== 响应式 ===================== */
-/* 宽屏：正文仍是 85ch，右侧空出来的那一列放粘性目录。
+/* 宽屏：正文列吃掉容器剩余宽度，右侧一列放粘性目录。
+   原来正文写死 85ch、目录 230px，两栏合计约 1032px 正好填满旧的 1080 容器；
+   主容器加宽到 1280 后就多出约 200px 全堆在目录右侧，正文反而显得窄。
+   改成 1fr 让正文随容器伸缩，目录 270px 也宽一点，长标题不再挤成两行。
    top:88px 是为了让开 sticky 顶栏（约 66px）再留点呼吸。
    用 :has(.toc) 只在真的有目录时才切两栏，短文章不会留一条空列。 */
-/* 960px：两栏所需的最小宽度。230(目录)+48(栏间)+48(wrap 内边距)+634(正文)，
-   正文栏跟单栏时的 85ch 基本持平——早点切两栏不会把正文压窄。
-   原来定在 1120px，960–1120 这段只能单栏，多出的宽度全成了右侧留白。 */
+/* 960px：两栏所需的最小宽度。270(目录)+48(栏间)+48(wrap 内边距)+594(正文)，
+   正文栏跟单栏时的宽度基本持平——早点切两栏不会把正文压窄。 */
 @media(min-width:960px){
   .post:has(.toc){
     display:grid;
-    grid-template-columns:minmax(0,85ch) 230px;
+    grid-template-columns:minmax(0,1fr) 270px;
     grid-template-areas:"title side" "meta side" "prose side" "back side";
     column-gap:48px;
     max-width:none;
