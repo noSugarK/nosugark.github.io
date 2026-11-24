@@ -4,6 +4,7 @@
    但代码 Tab 仍可复制。尊重系统「减少动态效果」偏好。 */
 import { animatedSelect } from './animated-select.js';
 import { makeExpandIcon, wireExpand } from './card-expand.js';
+import { makeDemoTabs } from './demo-tabs.js';
 
 (() => {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -42,6 +43,13 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
   const loadGsap = async () => { await loadScript(CDN.gsap); return window.gsap; };
   const fallback = (stage, msg) => stage.replaceChildren(make('p', 'demo-fallback', msg));
 
+  /* 舞台隐藏（代码 Tab）时尺寸是 0。别用 1 兜底——canvas 会带着 1×1 的内在比例回来，
+     把舞台撑成方块；跳过这一帧，切回示例后 ResizeObserver 会给真实尺寸。 */
+  const stageSize = stage => {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    return w && h ? {w, h} : null;
+  };
+
   /* 加载期给舞台套一圈流光边框（参考 BorderTrail），依赖就绪后移除。
      减少动态偏好下只留静态提示，不转圈。 */
   const withTrail = async (stage, task) => {
@@ -55,26 +63,6 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
   function shell(root, title) {
     root.classList.add('demo-lab');
     const card = make('div', 'demo');
-
-    /* 顶部只留一行：Tab 在左、标题居中、放大按钮在最右（标题下移到这行，省掉一行） */
-    const head = make('div', 'demo-head');
-    const tabs = make('div', 'demo-tabs');
-    tabs.setAttribute('role', 'tablist');
-    const tabDemo = make('button', 'demo-tab', '示例');
-    const tabCode = make('button', 'demo-tab', '代码');
-    [tabDemo, tabCode].forEach((tab, i) => {
-      tab.type = 'button';
-      tab.setAttribute('role', 'tab');
-      tab.setAttribute('aria-selected', String(i === 0));
-      tab.tabIndex = i === 0 ? 0 : -1;
-    });
-    tabs.append(tabDemo, tabCode);
-    const titleEl = make('span', 'demo-title', title);
-    const actions = make('div', 'demo-actions');
-    const expand = make('button', 'demo-icon');
-    makeExpandIcon(expand);
-    actions.append(expand);
-    head.append(tabs, titleEl, actions);
 
     const viewDemo = make('div', 'demo-view');
     viewDemo.setAttribute('role', 'tabpanel');
@@ -91,6 +79,22 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
     const viewCode = make('div', 'demo-view');
     viewCode.setAttribute('role', 'tabpanel');
     viewCode.hidden = true;
+
+    /* Tab 按钮与键盘切换交给共用模块，这里只决定两个面板的显隐 */
+    const {tabs} = makeDemoTabs(make, index => {
+      const showCode = index === 1;
+      viewDemo.hidden = showCode;
+      viewCode.hidden = !showCode;
+    });
+
+    /* 顶部只留一行：Tab 在左、标题居中、放大按钮在最右（标题下移到这行，省掉一行） */
+    const head = make('div', 'demo-head');
+    const titleEl = make('span', 'demo-title', title);
+    const actions = make('div', 'demo-actions');
+    const expand = make('button', 'demo-icon');
+    makeExpandIcon(expand);
+    actions.append(expand);
+    head.append(tabs, titleEl, actions);
 
     /* 搬移 site.js 已增强过的代码块（含复制按钮）到代码 Tab。
        两种实际结构都要认：
@@ -109,25 +113,6 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
 
     card.append(head, viewDemo, viewCode);
     root.replaceChildren(card);
-
-    const select = which => {
-      const showCode = which === 'code';
-      tabDemo.setAttribute('aria-selected', String(!showCode));
-      tabCode.setAttribute('aria-selected', String(showCode));
-      tabDemo.tabIndex = showCode ? -1 : 0;
-      tabCode.tabIndex = showCode ? 0 : -1;
-      viewDemo.hidden = showCode;
-      viewCode.hidden = !showCode;
-    };
-    tabDemo.addEventListener('click', () => select('demo'));
-    tabCode.addEventListener('click', () => select('code'));
-    tabs.addEventListener('keydown', event => {
-      if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
-      event.preventDefault();
-      const next = tabDemo.getAttribute('aria-selected') === 'true' ? tabCode : tabDemo;
-      next.focus();
-      next.click();
-    });
 
     return {root, card, expand, stage, controls, status};
   }
@@ -159,13 +144,10 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
 
     let spinning = !reduced, angle = 0, dragging = false, lastX = 0, lastY = 0;
     const resize = () => {
-      /* 切到「代码」Tab 时舞台 display:none，尺寸为 0。此时若按 1×1 回写 canvas，
-         它带着正方形内在比例回来，会把舞台撑成方块。直接跳过；切回示例后
-         ResizeObserver 会带着真实尺寸再次触发。 */
-      if (!stage.clientWidth || !stage.clientHeight) return;
-      const w = stage.clientWidth, h = stage.clientHeight;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
+      const size = stageSize(stage);
+      if (!size) return;
+      renderer.setSize(size.w, size.h, false);
+      camera.aspect = size.w / size.h;
       camera.updateProjectionMatrix();
     };
     new ResizeObserver(resize).observe(stage);
@@ -292,13 +274,10 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
     scene.add(light);
 
     const resize = () => {
-      /* 切到「代码」Tab 时舞台 display:none，尺寸为 0。此时若按 1×1 回写 canvas，
-         它带着正方形内在比例回来，会把舞台撑成方块。直接跳过；切回示例后
-         ResizeObserver 会带着真实尺寸再次触发。 */
-      if (!stage.clientWidth || !stage.clientHeight) return;
-      const w = stage.clientWidth, h = stage.clientHeight;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
+      const size = stageSize(stage);
+      if (!size) return;
+      renderer.setSize(size.w, size.h, false);
+      camera.aspect = size.w / size.h;
       camera.updateProjectionMatrix();
     };
     new ResizeObserver(resize).observe(stage);
@@ -422,10 +401,12 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
 
     let angle = 0, spinning = !reduced;
     const draw = () => {
-      /* 舞台隐藏（代码 Tab）时尺寸为 0，不回写 canvas，避免带着 1×1 回来撑歪舞台 */
-      if (!stage.clientWidth || !stage.clientHeight) return;
-      const w = stage.clientWidth, h = stage.clientHeight;
-      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
+      const size = stageSize(stage);
+      if (!size) return;
+      if (canvas.width !== size.w || canvas.height !== size.h) {
+        canvas.width = size.w; canvas.height = size.h;
+        gl.viewport(0, 0, size.w, size.h);
+      }
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform1f(uAngle, angle);

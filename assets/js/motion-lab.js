@@ -1,6 +1,7 @@
 import { animate, stagger, inView, scroll, springValue, EmblaCarousel, Lenis, NumberFlow, trailingCursor } from './vendor/motion-lab-vendor.js';
 import { animatedSelect } from './animated-select.js';
 import { makeExpandIcon, wireExpand } from './card-expand.js';
+import { makeDemoTabs } from './demo-tabs.js';
 
 (() => {
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
@@ -672,32 +673,6 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
        示例和代码面板都随所选实验切换。 */
     lab.classList.add('motion-lab-card');
     const card = create('div', 'demo');
-    const head = create('div', 'demo-head');
-    const tabs = create('div', 'demo-tabs');
-    tabs.setAttribute('role', 'tablist');
-    const tabDemo = create('button', 'demo-tab', '示例');
-    const tabCode = create('button', 'demo-tab', '代码');
-    [tabDemo, tabCode].forEach((tab, i) => {
-      tab.type = 'button';
-      tab.setAttribute('role', 'tab');
-      tab.setAttribute('aria-selected', String(i === 0));
-      tab.tabIndex = i === 0 ? 0 : -1;
-    });
-    tabs.append(tabDemo, tabCode);
-    const slot = create('div', 'demo-slot');
-    const picker = animatedSelect(
-      rows.map((row, position) => ({value: String(position), label: row.cells[0].textContent.trim()})),
-      '0',
-      null,
-      '选择实验'
-    );
-    slot.append(picker);
-    const actionsHead = create('div', 'demo-actions');
-    const expand = create('button', 'demo-icon');
-    makeExpandIcon(expand);
-    actionsHead.append(expand);
-    head.append(tabs, slot, actionsHead);
-
     const viewDemo = create('div', 'demo-view');
     viewDemo.setAttribute('role', 'tabpanel');
     const stage = create('div', 'ml-stage');
@@ -714,26 +689,29 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
     viewCode.setAttribute('role', 'tabpanel');
     viewCode.hidden = true;
 
-    card.append(head, viewDemo, viewCode);
-    lab.replaceChildren(card);
-
-    const selectTab = which => {
-      const showCode = which === 'code';
-      tabDemo.setAttribute('aria-selected', String(!showCode));
-      tabCode.setAttribute('aria-selected', String(showCode));
-      tabDemo.tabIndex = showCode ? -1 : 0;
-      tabCode.tabIndex = showCode ? 0 : -1;
+    /* 与示例区共用 Tab 模块；这里只切两个面板 */
+    const {tabs} = makeDemoTabs(create, index => {
+      const showCode = index === 1;
       viewDemo.hidden = showCode;
       viewCode.hidden = !showCode;
-    };
-    tabDemo.addEventListener('click', () => selectTab('demo'));
-    tabCode.addEventListener('click', () => selectTab('code'));
-    tabs.addEventListener('keydown', event => {
-      if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
-      event.preventDefault();
-      const next = tabDemo.getAttribute('aria-selected') === 'true' ? tabCode : tabDemo;
-      next.focus(); next.click();
     });
+    const slot = create('div', 'demo-slot');
+    const picker = animatedSelect(
+      rows.map((row, position) => ({value: String(position), label: row.cells[0].textContent.trim()})),
+      '0',
+      null,
+      '选择实验'
+    );
+    slot.append(picker);
+    const actionsHead = create('div', 'demo-actions');
+    const expand = create('button', 'demo-icon');
+    makeExpandIcon(expand);
+    actionsHead.append(expand);
+    const head = create('div', 'demo-head');
+    head.append(tabs, slot, actionsHead);
+
+    card.append(head, viewDemo, viewCode);
+    lab.replaceChildren(card);
 
     /* 代码面板：当前实验的「第一版怎么做」+ 实现来源，随选择更新 */
     const updateCode = () => {
