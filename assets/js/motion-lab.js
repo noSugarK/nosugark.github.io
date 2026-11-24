@@ -713,13 +713,24 @@ import { makeDemoTabs } from './demo-tabs.js';
     card.append(head, viewDemo, viewCode);
     lab.replaceChildren(card);
 
-    /* 代码面板：当前实验的「第一版怎么做」+ 实现来源，随选择更新 */
+    /* 代码面板放真实实现源码，不放说明文字；来源链接保留作署名 */
+    const sourceOf = (fn, group, pos) => {
+      let extra = '';
+      if (group === 'text' && pos === 2) extra = `\n\nconst morphingText = ${morphingText.toString()};`;
+      else if (group === 'text' && pos === 3) extra = `\n\nconst typewriter = ${typewriter.toString()};`;
+      else if (group === 'scroll') extra = `\n\nconst scrolling = ${scrolling.toString()};`;
+      else if (group === 'pointer') extra = `\n\nconst pointing = ${pointing.toString()};`;
+      else if (group === 'detail' && pos === 1) extra = `\n\nconst carousel = ${carousel.toString()};`;
+      return `/* 本站实现；context 提供 stage / button / tile / status / listen / motion / later / row / run / upstream / play */\nconst demo = ${fn.toString()};${extra}`;
+    };
     const updateCode = () => {
       const pos = Number(picker.value);
-      const row = rows[pos];
       viewCode.replaceChildren();
-      const note = create('p', 'ml-code-note', row?.cells[2]?.textContent.trim() || '');
-      viewCode.append(note);
+      const pre = create('pre', 'ml-code-src');
+      const code = create('code');
+      code.textContent = sourceOf(demos[pos], lab.dataset.lab, pos);
+      pre.append(code);
+      viewCode.append(pre);
       const source = sources[lab.dataset.lab]?.[String(pos)];
       const line = create('div', 'ml-source');
       if (source) {
@@ -804,6 +815,12 @@ import { makeDemoTabs } from './demo-tabs.js';
           return animation;
         }
       });
+
+      /* 每个实验都能重播：自动播完的效果不会「消失」，换实验后也能再看一次 */
+      const replay = button('重播', 'demo-btn ml-replay');
+      listen(replay, 'click', () => { controller?.abort(); mount(); });
+      actions.append(replay);
+      actions.hidden = false;
     }
     picker.onchange = () => { updateCode(); mount(); };
     preference.addEventListener('change', mount);
