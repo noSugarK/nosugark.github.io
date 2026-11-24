@@ -261,12 +261,22 @@ function apply(p) {
 
 ### 8.4 WebGL：看看地基长什么样
 
-日常不必自己写。下面是原生 WebGL 的三色渐变三角，旋转与渐变都在着色器里算，CPU 每帧只传一个角度：
+日常不必自己写。下面存成 `webgl.html` 直接打开就能跑：原生 WebGL 的三色渐变三角，旋转与渐变都在着色器里算，CPU 每帧只传一个角度。
 
 <div class="demo-lab" data-demo="webgl"></div>
 
-```js
+```html
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<canvas id="c" width="600" height="300"></canvas>
+<button id="spin">暂停旋转</button>
+<button id="swap">换渐变</button>
+<script>
+const canvas = document.querySelector('#c');
 const gl = canvas.getContext('webgl');
+if (!gl) throw new Error('当前浏览器未启用 WebGL');
+
 // 顶点着色器：按 uAngle 旋转顶点，并把顶点色传给片元着色器
 const vs = `attribute vec2 p; attribute vec3 c; varying vec3 vC; uniform float uAngle;
   void main(){ float s=sin(uAngle), co=cos(uAngle);
@@ -274,7 +284,64 @@ const vs = `attribute vec2 p; attribute vec3 c; varying vec3 vC; uniform float u
 // 片元着色器：直接输出插值后的顶点色 —— 三色渐变由此而来
 const fs = `precision mediump float; varying vec3 vC;
   void main(){ gl_FragColor=vec4(vC,1.0); }`;
-// 编译着色器 → 链接程序 → 传入顶点位置与顶点色 → 每帧 gl.uniform1f(uAngle, t) → drawArrays(...)
+
+function shader(type, src){
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+// 1. 编译着色器、链接程序
+const program = gl.createProgram();
+gl.attachShader(program, shader(gl.VERTEX_SHADER, vs));
+gl.attachShader(program, shader(gl.FRAGMENT_SHADER, fs));
+gl.linkProgram(program);
+if(!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
+gl.useProgram(program);
+
+// 2. 顶点位置与 attribute：三个顶点构成三角
+function attrib(name, size, data){
+  const loc = gl.getAttribLocation(program, name);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
+  return buf;
+}
+attrib('p', 2, new Float32Array([0,.78, -.72,-.66, .72,-.66]));
+
+// 3. 顶点色换一组就重新上传；渐变由 varying 插值得到
+const schemes = [
+  [.88,.15,.11, .96,.77,0, .11,.3,.62],
+  [.11,.3,.62, .88,.15,.11, .96,.77,0]
+];
+let scheme = 0;
+const colorBuf = attrib('c', 3, new Float32Array(schemes[0]));
+function swapColors(){
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(schemes[scheme]), gl.STATIC_DRAW);
+}
+const uAngle = gl.getUniformLocation(program, 'uAngle');
+
+// 4. 每帧只传一个角度，旋转与渐变都在 GPU 上算
+let angle = 0, spinning = true;
+function draw(){
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.uniform1f(uAngle, angle);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+}
+function loop(){ if(spinning){ angle += .012; draw(); } requestAnimationFrame(loop); }
+loop();
+
+const spin = document.querySelector('#spin');
+spin.onclick = () => { spinning = !spinning; spin.textContent = spinning ? '暂停旋转' : '自动旋转'; };
+document.querySelector('#swap').onclick = () => {
+  scheme = (scheme + 1) % schemes.length;
+  swapColors(); draw();
+};
+</script>
 ```
 
 光是把这段跑通就要写好几倍于 three.js 例子的代码——这正是 three.js 存在的原因。
@@ -316,7 +383,7 @@ const fs = `precision mediump float; varying vec3 vC;
 | 可旋转的产品、3D 场景 | three.js（React / Vue 用封装层） | 第 5 节、8.1 |
 | 3D 里的精确镜头运动 | three.js 画 + GSAP 动 | 8.3 |
 | 自研渲染管线、特殊着色器 | WebGL / WebGPU | 8.4 只是起点 |
-| 固定镜头的装饰画面 | 图片 / 视频，别维护渲染循环 | 第 0 节 |
+| 固定镜头的装饰画面 | 图片 / 视频，别维护渲染循环 | 第 1 节（选型流程） |
 | 设计师交付的动画文件 | Lottie / Rive | 第 5 节 |
 | React / Vue 现成组件 | React Bits / Motion / Inspira UI，shadcn 组件加动效用 Animate UI | 第 2、3 节 |
 
