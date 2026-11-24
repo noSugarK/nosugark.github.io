@@ -102,11 +102,17 @@ input,textarea,select,.search{cursor:text}
 
 /* ===================== 基础 ===================== */
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;scroll-padding-top:104px}
+/* 主容器加宽后，首屏 facts 的几何装饰与 intro 放大在 ~1280 视口会探出右缘。
+   body 上的 overflow-x:clip 只管 body，滚动条仍挂在 html 上，所以这里也裁一次。
+   clip 不像 hidden 那样建滚动容器，粘性目录 / sticky 舞台照常工作。 */
+html{scroll-behavior:smooth;scroll-padding-top:104px;overflow-x:clip}
 body{background:var(--bg);color:var(--fg);font-family:var(--font);line-height:1.65;
   -webkit-font-smoothing:antialiased}
 a{color:inherit}
-.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+/* 主内容区宽度：原来 1080 在宽屏上两侧留白过多（1920 下各 420px），
+   博客页再被左侧时间轴吃掉 260px，正文列表只剩 772px，显得很局促。
+   提到 1280 —— 首页卡片更舒展、博客列表回到约 970px。窄屏仍靠 padding 自适应。 */
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px}
 /* JS 靠 el.hidden 折叠卡片和空分组，但 .tl .card{display:grid} 这类作者规则
    会盖掉 UA 的 [hidden]{display:none}，导致设了 hidden 仍然显示。补一条兜底。 */
 [hidden]{display:none!important}
@@ -819,7 +825,7 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
   /* 卡片进场时向右偏 56px。视口窄于 1128 时正文已经贴满 wrap，这 56px 会探出
      视口右缘撑出横向滚动条；clip 只裁掉越界那截，不建滚动容器，
      sticky 舞台和 scroll() 时间线都不受影响（换成 hidden 就会破）。
-     几何装饰在 1340 以上才出现，那时 wrap 封顶 1080，两侧留白够，不会被裁到。 */
+     几何装饰在 1540 以上才出现，那时 wrap 封顶 1280，两侧留白够，不会被裁到。 */
   body{overflow-x:clip}
 
   /* 卡片压后半程进场，收拢收到一半才浮出来，两段动作不打架 */
@@ -929,9 +935,10 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
   .nd-leaf b{margin-right:8px}
 }
 
-/* 1080 栅格两侧各要留出约 130px 才装得下最外侧那块（右下角 106 的四分之一圆
-   探出 140），窄于 1340 就会被视口切掉、甚至撑出横向滚动条，索性不渲染 */
-@media(max-width:1339px){ .hero-art{display:none} }
+/* 1280 栅格两侧各要留出约 130px 才装得下最外侧那块（右下角 106 的四分之一圆
+   探出 140），所以视口窄于 1280+2×130≈1540 就会被切掉，索性不渲染。
+   （原来 1080 栅格时这条线是 1340，随主容器一起右移。） */
+@media(max-width:1539px){ .hero-art{display:none} }
 
 @media(max-width:900px){
   .hero{grid-template-columns:1fr;gap:28px;padding-top:40px}
