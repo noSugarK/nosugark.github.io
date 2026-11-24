@@ -273,7 +273,7 @@ function setLang(l){
   if(q) q.placeholder = t(isPost ? UI.findInPost : isHome ? UI.search : UI.searchPosts);
   const lb = $("#lang");
   if(lb){ lb.textContent = t(UI.langBtn); lb.title = lb.ariaLabel = t(UI.langTip); }
-  syncTheme();
+  renderTheme(document.documentElement.dataset.themePref || "system");
   renderResume();
   syncTagLinks();        /* 先给标签链接记下原始 tag，气泡才能取到原样大小写 */
   initTagbar();          /* 气泡上的「移除 / 清空」文案跟着语言走 */
@@ -286,25 +286,27 @@ function setLang(l){
 const NEXT_THEME = { light:"system", system:"dark", dark:"light" };
 const SYS_DARK = matchMedia("(prefers-color-scheme: dark)");
 const effectiveOf = pref => pref === "system" ? (SYS_DARK.matches ? "dark" : "light") : pref;
-/* 四个方向的 clip-path：新页面从哪一边被"擦"出来 */
+/* 擦除方向跟文档走（<html dir="rtl">），不再读按钮上没人设置的 data-dir */
 const CLIP = {
   ltr:["inset(0 100% 0 0)","inset(0 0 0 0)"], rtl:["inset(0 0 0 100%)","inset(0 0 0 0)"],
-  ttb:["inset(0 0 100% 0)","inset(0 0 0 0)"], btt:["inset(100% 0 0 0)","inset(0 0 0 0)"],
 };
+const wipeDirection = () => document.documentElement.dir === "rtl" ? "rtl" : "ltr";
 let themeSwitching = false;
 
-function syncTheme(){
+/* 唯一状态源是 dataset.themePref：图标、提示与实际颜色都从它渲染。
+   color=false 供擦除过渡用——图标先走一态，颜色交给 startViewTransition 的 update。 */
+function renderTheme(pref, color = true){
+  if(color) document.documentElement.dataset.theme = effectiveOf(pref);
   const tb = $("#theme");
-  if(!tb) return;
-  const pref = document.documentElement.dataset.themePref || "system";
-  tb.dataset.pref = pref;
-  tb.title = tb.ariaLabel = UI.themeTip[lang][pref] || "";
+  if(tb){
+    tb.dataset.pref = pref;
+    tb.title = tb.ariaLabel = UI.themeTip[lang][pref] || "";
+  }
 }
 function commitTheme(pref){
   document.documentElement.dataset.themePref = pref;
-  document.documentElement.dataset.theme = effectiveOf(pref);
+  renderTheme(pref);
   store.set("theme", pref);
-  syncTheme();
 }
 async function toggleTheme(){
   if(themeSwitching) return;                       /* 擦除期间连点直接丢掉，避免快照错乱 */
@@ -317,14 +319,13 @@ async function toggleTheme(){
     commitTheme(next); return;
   }
 
-  /* 图标先走到下一态，给切换一个即时反馈 */
-  const tb = $("#theme");
-  if(tb){ tb.dataset.pref = next; tb.title = tb.ariaLabel = UI.themeTip[lang][next]; }
+  /* 图标先走到下一态；颜色仍留给 view-transition 的 update 去改 */
+  renderTheme(next, false);
 
   if(!MOTION || !document.startViewTransition){ commitTheme(next); return; }
 
   themeSwitching = true;
-  const apply = () => { document.documentElement.dataset.theme = resolved; };
+  const apply = () => renderTheme(next);
   let tr;
   try{
     tr = document.startViewTransition({ update:apply, types:["animate-ui-theme"] });
@@ -334,7 +335,7 @@ async function toggleTheme(){
   try{ await tr.ready; }
   catch(e){ themeSwitching = false; commitTheme(next); return; }
 
-  const [from, to] = CLIP[tb?.dataset.dir] || CLIP.ltr;
+  const [from, to] = CLIP[wipeDirection()];
   try{
     await document.documentElement.animate(
       { clipPath:[from, to] },
@@ -346,8 +347,8 @@ async function toggleTheme(){
 }
 /* 选了跟随系统后，系统偏好若变化，颜色跟着走（无擦除，静默） */
 SYS_DARK.addEventListener?.("change", () => {
-  if((document.documentElement.dataset.themePref || "system") === "system" && !themeSwitching)
-    document.documentElement.dataset.theme = SYS_DARK.matches ? "dark" : "light";
+  const pref = document.documentElement.dataset.themePref || "system";
+  if(pref === "system" && !themeSwitching) renderTheme(pref);
 });
 
 /* ===================== 搜索 + 筛选 ===================== */

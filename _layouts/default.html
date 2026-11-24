@@ -78,7 +78,7 @@ document.documentElement.classList.add("boot");
     <button id="lang" class="tgl" type="button" title="Switch to English">EN</button>
     {%- comment -%}
       三态主题按钮：三枚图标叠在同一格里，由 data-pref 决定当前显示哪枚。
-      aria-label / title 由 site.js 的 syncTheme() 按当前选择动态写入。
+      aria-label / title 由 site.js 的 renderTheme() 按当前选择动态写入。
     {%- endcomment -%}
     <button id="theme" class="tgl theme-tgl" type="button" data-pref="system"
             title="切换主题" aria-label="切换主题">
