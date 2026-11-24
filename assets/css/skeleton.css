@@ -2,7 +2,7 @@
    Skeleton — 首屏预填充（仿 shadcn Skeleton 的扫光）
    一律淡灰填充 + 淡阴影描边，不上主题色：占位就是占位，不抢正文视觉。
    尺寸走 --w / --h，深浅色各一套灰阶；扫光默认开，
-   data-animated="false" 与 prefers-reduced-motion:reduce 关掉。
+   prefers-reduced-motion:reduce 下关掉。
    ========================================================== */
 :root{
   --sk-base:#EAE9E6;                     /* 淡灰，比 paper 深一档 */
@@ -29,8 +29,6 @@ html[data-theme="dark"]{
   animation:sk-sweep 1.4s ease-in-out infinite;
 }
 @keyframes sk-sweep{to{transform:translateX(100%)}}
-.sk[data-animated="false"]::after,
-.sk-page[data-animated="false"] .sk::after{content:none;animation:none}
 @media (prefers-reduced-motion:reduce){
   .sk::after{content:none;animation:none}
 }
