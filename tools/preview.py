@@ -195,14 +195,17 @@ def build():
         html = render_page(post, post["content"], base_ctx, by_slug)
         write_html(post["url"].lstrip("/") + "index.html", html)
 
-    for name in ("index.html", "blog.html"):
+    for name, page_url, rel in (
+        ("index.html", "/", "index.html"),
+        ("blog.html", "/blog/", "blog/index.html"),
+        ("motion.html", "/motion/", "motion/index.html"),
+    ):
         meta, body = frontmatter(read(ROOT / name))
         # 页面模板里的 for/if 交给 Jinja2，先还原 Liquid 的 post_url 与路径过滤器
         body = preprocess_liquid(body, by_slug)
         body = body.replace("| relative_url", "| relative_url")
-        page_meta = dict(meta, url="/" if name == "index.html" else meta.get("permalink", "/blog/"))
+        page_meta = dict(meta, url=page_url)
         html = render_page(page_meta, body, base_ctx, by_slug)
-        rel = "index.html" if name == "index.html" else "blog/index.html"
         write_html(rel, html)
 
     print(f"rendered {len(posts)} posts + index/blog to {OUT}")

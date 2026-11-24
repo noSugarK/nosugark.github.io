@@ -161,6 +161,7 @@ const UI = {
   privateTag:{zh:"私有",en:"PRIVATE"},
   search:{zh:"搜索项目 / 技能 / 奖项…",en:"Search projects / skills / awards…"},
   searchPosts:{zh:"搜索文章标题 / 标签 / 正文…",en:"Search posts by title, tag or text…"},
+  searchMotion:{zh:"搜索动效 / 来源…",en:"Search effects / source…"},
   findInPost:{zh:"在本文中查找…  ↵ 下一个",en:"Find in this article…  ↵ next"},
   langBtn:{zh:"EN",en:"中"},                                  /* 显示的是「切过去」的语言 */
   langTip:{zh:"Switch to English",en:"切换为中文"},
@@ -197,6 +198,7 @@ const isHome = !!$("#grid");
 const prose  = $(".prose");
 const isPost = !!prose;
 const isList = !!$("#post-list");   /* 博客列表页：只有它有左侧时间轴 */
+const isMotion = !!$(".mx-page");   /* 动效页：顶栏搜索改为筛示例 */
 
 /* ===================== 渲染 ===================== */
 function renderResume(){
@@ -270,7 +272,7 @@ function setLang(l){
     el.textContent = el.dataset[l];
   });
   const q = $("#q");
-  if(q) q.placeholder = t(isPost ? UI.findInPost : isHome ? UI.search : UI.searchPosts);
+  if(q) q.placeholder = t(isMotion ? UI.searchMotion : isPost ? UI.findInPost : isHome ? UI.search : UI.searchPosts);
   const lb = $("#lang");
   if(lb){ lb.textContent = t(UI.langBtn); lb.title = lb.ariaLabel = t(UI.langTip); }
   renderTheme(document.documentElement.dataset.themePref || "system");
@@ -373,7 +375,7 @@ function ensureFullIndex(){
    首页筛简历卡片、列表页筛文章行，同一套代码。 */
 function filter(){
   const box = $("#q");
-  if(!box || isPost) return;
+  if(!box || isPost || isMotion) return;   /* 动效页由 motion.js 自己筛 */
   const q = box.value.trim().toLowerCase();
   const all = [...$$("[data-s]")];
   all.forEach(el=>{

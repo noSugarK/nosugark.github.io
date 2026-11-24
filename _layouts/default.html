@@ -17,13 +17,13 @@
 {%- endcomment -%}
 <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}?v={{ site.time | date: '%s' }}">
 <link rel="stylesheet" href="{{ '/assets/css/skeleton.css' | relative_url }}?v={{ site.time | date: '%s' }}">
-{%- if page.motion_lab or page.demo_lab %}
+{%- if page.motion_page or page.demo_lab %}
 <link rel="stylesheet" href="{{ '/assets/css/demo-card.css' | relative_url }}?v={{ site.time | date: '%s' }}">
 <link rel="stylesheet" href="{{ '/assets/css/animated-select.css' | relative_url }}?v={{ site.time | date: '%s' }}">
 {%- endif %}
-{%- if page.motion_lab %}
-<link rel="stylesheet" href="{{ '/assets/css/motion-lab.css' | relative_url }}?v={{ site.time | date: '%s' }}">
-<script type="module" src="{{ '/assets/js/motion-lab.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+{%- if page.motion_page %}
+<link rel="stylesheet" href="{{ '/assets/css/motion-gallery.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+<script type="module" src="{{ '/assets/js/motion.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 {%- endif %}
 {%- if page.demo_lab %}
 <link rel="stylesheet" href="{{ '/assets/css/demo-lab.css' | relative_url }}?v={{ site.time | date: '%s' }}">
@@ -66,6 +66,7 @@ document.documentElement.classList.add("boot");
       <a href="{{ '/#edu'      | relative_url }}" data-en="Education">教育</a>
       <a href="{{ '/#awards'   | relative_url }}" data-en="Awards">获奖</a>
       <a href="{{ '/blog/'     | relative_url }}" data-en="Blog">博客</a>
+      <a href="{{ '/motion/'   | relative_url }}" data-en="Motion">动效</a>
     </nav>
     {%- comment -%}
       搜索框每页都有，行为由 JS 按页面类型分流：
@@ -112,7 +113,7 @@ document.documentElement.classList.add("boot");
   三种页面各一套占位，形状按各自真实布局走，切主题时靠 CSS 变量跟着变。
   aria-hidden + CSS pointer-events:none 让它对读屏和点击都隐形。
 {%- endcomment -%}
-<div class="sk-page" hidden data-sk="{% if page.url == '/' %}home{% elsif page.url == '/blog/' %}blog{% else %}post{% endif %}" aria-hidden="true">
+<div class="sk-page" hidden data-sk="{% if page.motion_page %}none{% elsif page.url == '/' %}home{% elsif page.url == '/blog/' %}blog{% else %}post{% endif %}" aria-hidden="true">
   {%- if page.url == '/' -%}
   <div class="hero-s">
     <div class="intro-s">
@@ -219,6 +220,7 @@ document.documentElement.classList.add("boot");
   const sk = document.querySelector(".sk-page");
   if(!sk) return;
   const kind = sk.dataset.sk;
+  if(kind === 'none'){ sk.remove(); return; }   /* 静态索引页无需骨架：内容随 HTML 一起到达 */
   const host = kind === "home" ? "#grid .card" : kind === "blog" ? ".post-row" : ".prose p";
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let done = false;
