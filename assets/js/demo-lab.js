@@ -159,7 +159,11 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
 
     let spinning = !reduced, angle = 0, dragging = false, lastX = 0, lastY = 0;
     const resize = () => {
-      const w = Math.max(stage.clientWidth, 1), h = Math.max(stage.clientHeight, 1);
+      /* 切到「代码」Tab 时舞台 display:none，尺寸为 0。此时若按 1×1 回写 canvas，
+         它带着正方形内在比例回来，会把舞台撑成方块。直接跳过；切回示例后
+         ResizeObserver 会带着真实尺寸再次触发。 */
+      if (!stage.clientWidth || !stage.clientHeight) return;
+      const w = stage.clientWidth, h = stage.clientHeight;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
@@ -288,7 +292,11 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
     scene.add(light);
 
     const resize = () => {
-      const w = Math.max(stage.clientWidth, 1), h = Math.max(stage.clientHeight, 1);
+      /* 切到「代码」Tab 时舞台 display:none，尺寸为 0。此时若按 1×1 回写 canvas，
+         它带着正方形内在比例回来，会把舞台撑成方块。直接跳过；切回示例后
+         ResizeObserver 会带着真实尺寸再次触发。 */
+      if (!stage.clientWidth || !stage.clientHeight) return;
+      const w = stage.clientWidth, h = stage.clientHeight;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
@@ -414,7 +422,9 @@ import { makeExpandIcon, wireExpand } from './card-expand.js';
 
     let angle = 0, spinning = !reduced;
     const draw = () => {
-      const w = Math.max(stage.clientWidth, 1), h = Math.max(stage.clientHeight, 1);
+      /* 舞台隐藏（代码 Tab）时尺寸为 0，不回写 canvas，避免带着 1×1 回来撑歪舞台 */
+      if (!stage.clientWidth || !stage.clientHeight) return;
+      const w = stage.clientWidth, h = stage.clientHeight;
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
