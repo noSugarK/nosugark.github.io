@@ -1,4 +1,3 @@
-# Jekyll 构建产物与缓存
 _site/
 .jekyll-cache/
 .jekyll-metadata
@@ -10,6 +9,3 @@ Gemfile.lock
 # 只忽略根目录下 bundler 的 vendor，别误伤 assets/js/vendor/
 /vendor/
 .bundle/
-.workbuddy/
-.agent/
-.claude/
