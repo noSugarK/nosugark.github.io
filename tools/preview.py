@@ -50,6 +50,15 @@ def jdate(value, fmt="%Y-%m-%d"):
     return text
 
 
+def liquid_plus(s, n=0):
+    """Liquid 的 plus 按数值相加；预览里别把 11 变成 11.0。"""
+    try:
+        value = float(s) + float(n)
+    except (TypeError, ValueError):
+        return s
+    return int(value) if value.is_integer() else value
+
+
 JINJA.filters.update(
     {
         "relative_url": lambda s: str(s),
@@ -61,7 +70,7 @@ JINJA.filters.update(
         "truncate": lambda s, n=120: (str(s)[:n] + "…") if len(str(s)) > n else str(s),
         "downcase": lambda s: str(s).lower(),
         "url_encode": lambda s: str(s).replace(" ", "%20"),
-        "plus": lambda s, n=0: float(s) + float(n) if str(s).replace(".", "", 1).isdigit() else s,
+        "plus": liquid_plus,
     }
 )
 
@@ -78,11 +87,34 @@ def frontmatter(text):
 
 
 def jinja_compat(src):
-    """把 Liquid 独有的 filter: 参数写法、comment 块、elsif 转成 Jinja2 语法。"""
+    """把 Liquid 独有的写法转成 Jinja2：comment 块、filter: 参数、elsif、
+    assign/capture、nil、xxx.size。layout 和页面正文都走这里。"""
     src = re.sub(r"\{%-?\s*comment\s*-?%\}.*?\{%-?\s*endcomment\s*-?%\}", "", src, flags=re.S)
-    src = re.sub(r"\|\s*(\w+)\s*:\s*([^}|]+)", lambda m: f"| {m.group(1)}({m.group(2).strip()})", src)
+    # Liquid 的 assign 是跨循环保留的全局变量，Jinja 的 set 一出 for 就丢。
+    # blog.html 靠 prevY / prevM 做年、月变化检测，先把以 nil 初始化的这类
+    # 循环变量放进 namespace，再改写引用；否则每篇文章都会单独开一个年/月分组。
+    carried = set(re.findall(r"\{%-?\s*assign\s+(\w+)\s*=\s*nil\s*-?%\}", src))
+    if carried:
+        for name in carried:
+            src = re.sub(rf"(\{{%-?\s*)assign\s+{name}\s*=", rf"\1set _lq.{name} =", src)
+        names = "|".join(map(re.escape, carried))
+        src = re.sub(
+            r"\{%[^%]*%\}|\{\{[^}]*\}\}",
+            lambda m: re.sub(rf"(?<![\w.])(?:{names})\b", lambda n: f"_lq.{n.group(0)}", m.group(0)),
+            src,
+        )
+        src = "{%- set _lq = namespace() -%}" + src
+    # 参数可能是带引号的日期格式（内含 -%/|），先整体吃下引号串再拼成函数调用
+    src = re.sub(r"\|\s*(\w+)\s*:\s*('(?:[^'\\]|\\.)*'|\"(?:[^\"\\]|\\.)*\"|[^\s}|]+)",
+                 lambda m: f"| {m.group(1)}({m.group(2)})", src)
     # Liquid 写 elsif，Jinja2 写 elif；站点模板用 elsif 做多分支
     src = re.sub(r"(\{%-?\s*)elsif\b", r"\1elif", src)
+    # 博客列表用的 assign / capture / nil / size
+    src = re.sub(r"(\{%-?\s*)assign\b", r"\1set", src)
+    src = re.sub(r"(\{%-?\s*)capture\s+([\w-]+)", r"\1set \2", src)
+    src = re.sub(r"(\{%-?\s*)endcapture\b", r"\1endset", src)
+    src = re.sub(r"\bnil\b", "none", src)
+    src = re.sub(r"\b([\w.]+)\.size\b", r"(\1|length)", src)
     return src
 
 
@@ -123,7 +155,9 @@ def collect():
 
 
 def preprocess_liquid(src, by_slug):
-    """把文章正文里用到的少量 Liquid 标签替换成最终文本，再交给 Markdown。"""
+    """把正文/页面里用到的少量 Liquid 标签替换成最终文本，再交给 Markdown / Jinja。"""
+    # layout 走 jinja_compat 会剥注释，但页面/文章正文不经过它，这里统一先剥掉
+    src = re.sub(r"\{%-?\s*comment\s*-?%\}.*?\{%-?\s*endcomment\s*-?%\}", "", src, flags=re.S)
     def post_url(match):
         name = match.group(1).strip().split("/")[-1]
         slug = re.sub(r"^\d{4}-\d{2}-\d{2}-", "", name)
@@ -201,9 +235,9 @@ def build():
         ("motion.html", "/motion/", "motion/index.html"),
     ):
         meta, body = frontmatter(read(ROOT / name))
-        # 页面模板里的 for/if 交给 Jinja2，先还原 Liquid 的 post_url 与路径过滤器
+        # 页面正文里的 for/if/assign 也要渲染，否则本地预览会露出 Liquid 原文
         body = preprocess_liquid(body, by_slug)
-        body = body.replace("| relative_url", "| relative_url")
+        body = render_jinja(body, base_ctx)
         page_meta = dict(meta, url=page_url)
         html = render_page(page_meta, body, base_ctx, by_slug)
         write_html(rel, html)
